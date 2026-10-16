@@ -325,24 +325,143 @@ export default function HomePage() {
               <p className="intro-copy">A little of the story. A thousand possible endings.<br className="desktop-break" /> Come for the mystery. Stay for the reveal.</p>
             </section>
 
+
             <section className="feed-section" aria-label="Discover stories">
-              <div className="feed-heading"><div><p className="eyebrow muted-eyebrow">{activeNav === 'Reading list' ? 'YOUR SAVED STORIES' : activeNav === 'Trending' ? 'THE STORIES EVERYONE IS TALKING ABOUT' : 'THE STORY FEED'}</p><h2>{activeNav === 'Reading list' ? <>Your <em>reading list.</em></> : <>Find your next <em>rabbit hole.</em></>}</h2></div><span className="story-count">{filteredStories.length.toString().padStart(2, '0')} STORIES</span></div>
-              <div className="feed-toolbar"><div className="feed-tabs" role="tablist" aria-label="Story feed filters">{['For you', 'Trending', 'New'].map((tab) => <button key={tab} role="tab" aria-selected={activeTab === tab} onClick={() => { setActiveTab(tab); if (tab === 'Trending') setActiveNav('Trending'); else if (activeNav === 'Trending') setActiveNav('Discover'); }} className={activeTab === tab ? 'tab-active' : ''}>{tab}</button>)}</div><span className="toolbar-note"><Sparkles size={13} /> Curiosity, not chronology</span></div>
-              {filteredStories.length ? <div className="story-list">{filteredStories.map((story, index) => (
-                <article className="story-row" key={story.id}>
-                  <button className="story-row-main" onClick={() => openStory(story)} aria-label={`Read ${story.title}`}>
-                    <span className="story-index">{String(index + 1).padStart(2, '0')}</span>
-                    <span className="story-row-copy">
-                      <span className="story-row-meta"><span className={`category-pill ${story.category === 'FICTION' ? 'pill-fiction' : ''}`}>{story.category === 'FICTION' ? 'FICTION' : 'REAL LIFE'}</span><span><Clock3 size={13} /> {story.readTime}</span><span className="story-row-author">by {story.author}</span></span>
-                      <strong className="story-row-title">{story.title}</strong>
-                      <span className="story-row-excerpt">{story.excerpt}</span>
-                      <span className="story-row-bottom"><span><MessageCircle size={14} /> {story.comments} theories</span><span><Heart size={14} /> {story.predictions} predictions</span><span className="row-read">Open story <ArrowRight size={14} /></span></span>
-                    </span>
+              <div className="feed-toolbar">
+                <div
+                  className="feed-tabs"
+                  role="tablist"
+                  aria-label="Story feed filters"
+                >
+                  {['For you', 'Trending', 'New'].map((tab) => (
+                    <button
+                      key={tab}
+                      role="tab"
+                      aria-selected={activeTab === tab}
+                      onClick={() => {
+                        setActiveTab(tab);
+
+                        if (tab === 'Trending') {
+                          setActiveNav('Trending');
+                        } else if (activeNav === 'Trending') {
+                          setActiveNav('Discover');
+                        }
+                      }}
+                      className={activeTab === tab ? 'tab-active' : ''}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+
+                <span className="toolbar-note">
+                  <Sparkles size={13} /> Curiosity, not chronology
+                </span>
+              </div>
+
+              {filteredStories.length ? (
+                <div className="story-list">
+                  {filteredStories.map((story, index) => (
+                    <article className="story-row" key={story.id}>
+                      <button
+                        className="story-row-main"
+                        onClick={() => openStory(story)}
+                        aria-label={`Read ${story.title}`}
+                      >
+                        <span className="story-index">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+
+                        <span className="story-row-copy">
+                          <span className="story-row-meta">
+                            <span
+                              className={`category-pill ${story.category === 'FICTION' ? 'pill-fiction' : ''
+                                }`}
+                            >
+                              {story.category === 'FICTION' ? 'FICTION' : 'REAL LIFE'}
+                            </span>
+
+                            <span>
+                              <Clock3 size={13} /> {story.readTime}
+                            </span>
+
+                            <span className="story-row-author">
+                              by {story.author}
+                            </span>
+                          </span>
+
+                          <strong className="story-row-title">
+                            {story.title}
+                          </strong>
+
+                          <span className="story-row-excerpt">
+                            {story.excerpt}
+                          </span>
+
+                          <span className="story-row-bottom">
+                            <span>
+                              <MessageCircle size={14} /> {story.comments} theories
+                            </span>
+
+                            <span>
+                              <Heart size={14} /> {story.predictions} predictions
+                            </span>
+
+                            <span className="row-read">
+                              Open story <ArrowRight size={14} />
+                            </span>
+                          </span>
+                        </span>
+                      </button>
+
+                      <button
+                        className={`row-bookmark ${savedStories.includes(story.id) ? 'is-saved' : ''
+                          }`}
+                        aria-label={
+                          savedStories.includes(story.id)
+                            ? 'Remove bookmark'
+                            : 'Bookmark story'
+                        }
+                        onClick={() => toggleSave(story.id)}
+                      >
+                        {savedStories.includes(story.id) ? (
+                          <Check size={17} />
+                        ) : (
+                          <Bookmark size={17} />
+                        )}
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <Search size={23} />
+
+                  <strong>
+                    {activeNav === 'Reading list'
+                      ? 'Your reading list is empty'
+                      : 'No stories found'}
+                  </strong>
+
+                  <span>
+                    {activeNav === 'Reading list'
+                      ? 'Save a story and it will be waiting here.'
+                      : 'Try another search or tab.'}
+                  </span>
+
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setActiveTab('For you');
+                      setActiveNav('Discover');
+                    }}
+                  >
+                    Explore stories
                   </button>
-                  <button className={`row-bookmark ${savedStories.includes(story.id) ? 'is-saved' : ''}`} aria-label={savedStories.includes(story.id) ? 'Remove bookmark' : 'Bookmark story'} onClick={() => toggleSave(story.id)}>{savedStories.includes(story.id) ? <Check size={17} /> : <Bookmark size={17} />}</button>
-                </article>
-              ))}</div> : <div className="empty-state"><Search size={23} /><strong>{activeNav === 'Reading list' ? 'Your reading list is empty' : 'No stories found'}</strong><span>{activeNav === 'Reading list' ? 'Save a story and it will be waiting here.' : 'Try another search or tab.'}</span><button onClick={() => { setSearchTerm(''); setActiveTab('For you'); setActiveNav('Discover'); }}>Explore stories</button></div>}
+                </div>
+              )}
             </section>
+
             <footer className="page-footer"><span className="footer-brand">un<span>told</span><i>.</i></span><span>Stay curious. The rest comes later.</span><span>© 2026 UNTOLD · EARLY PROTOTYPE</span></footer>
           </div>
 
@@ -376,7 +495,7 @@ export default function HomePage() {
             <div className="reader-tools"><button className={`listen-button ${isSpeaking ? 'listening' : ''}`} onClick={toggleNarration}>{isSpeaking ? <Pause size={16} /> : <Headphones size={16} />}{isSpeaking ? 'Pause narration' : 'Listen to story'}<span><Volume2 size={13} /> browser audio</span></button><button className={`reader-save ${savedStories.includes(selectedStory.id) ? 'is-saved' : ''}`} onClick={() => toggleSave(selectedStory.id)}>{savedStories.includes(selectedStory.id) ? <Check size={16} /> : <Bookmark size={16} />}{savedStories.includes(selectedStory.id) ? 'Saved' : 'Save story'}</button></div>
             <div className="reader-body">{selectedStory.body.slice(0, 2).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
             <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} /><span className="gallery-caption">{image.caption}</span><span className="gallery-expand"><Plus size={16} /></span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
-            {(selectedStory.lockedChapters?.length || selectedStory.body.length > 2 || selectedStory.progress < 100) ? <section className="locked-chapter-list"><div className="reveal-card"><div className="reveal-card-icon"><Clock3 size={18} /></div><div><span className="eyebrow muted-eyebrow">THE REST IS STILL HIDDEN</span><h3>The story isn&apos;t over.</h3><p>Titles are visible. The words stay hidden until the creator reveals them.</p></div><span className="reveal-status">REVEAL PENDING</span></div>{(selectedStory.lockedChapters?.length ? selectedStory.lockedChapters : selectedStory.body.slice(2).map((body, index) => ({ title: index === 0 ? 'The next clue' : `Part II · ${index + 1}`, body }))).map((chapter, index) => <section className="reader-locked-part" key={`${chapter.title}-${index}`}><p className="eyebrow muted-eyebrow">PART {String(index + 2).padStart(2, '0')} · REVEAL LATER</p><h3>{chapter.title}</h3><div className="reader-locked-copy" aria-label="Chapter content hidden">{chapter.body || 'The next part is waiting to be revealed.'}</div><div className="reader-locked-message"><Clock3 size={16}/><strong>This part is still hidden</strong><span>Come back when the creator reveals it.</span></div></section>)}</section> : null}
+            {(selectedStory.lockedChapters?.length || selectedStory.body.length > 2 || selectedStory.progress < 100) ? <section className="locked-chapter-list"><div className="reveal-card"><div className="reveal-card-icon"><Clock3 size={18} /></div><div><span className="eyebrow muted-eyebrow">THE REST IS STILL HIDDEN</span><h3>The story isn&apos;t over.</h3><p>Titles are visible. The words stay hidden until the creator reveals them.</p></div><span className="reveal-status">REVEAL PENDING</span></div>{(selectedStory.lockedChapters?.length ? selectedStory.lockedChapters : selectedStory.body.slice(2).map((body, index) => ({ title: index === 0 ? 'The next clue' : `Part II · ${index + 1}`, body }))).map((chapter, index) => <section className="reader-locked-part" key={`${chapter.title}-${index}`}><p className="eyebrow muted-eyebrow">PART {String(index + 2).padStart(2, '0')} · REVEAL LATER</p><h3>{chapter.title}</h3><div className="reader-locked-copy" aria-label="Chapter content hidden">{chapter.body || 'The next part is waiting to be revealed.'}</div><div className="reader-locked-message"><Clock3 size={16} /><strong>This part is still hidden</strong><span>Come back when the creator reveals it.</span></div></section>)}</section> : null}
             <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length + (submittedPredictions[selectedStory.id]?.length ?? 0)} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{(submittedPredictions[selectedStory.id] ?? []).map((text, index) => <article className="theory-card own-theory" key={`${text}-${index}`}><div className="theory-author"><span className="theory-avatar">Y</span><strong>you</strong><span>just now</span><span className="own-label">YOUR THEORY</span></div><p>{text}</p></article>)}{selectedStory.theories.map((theory) => <article className="theory-card" key={theory.author}><div className="theory-author"><span className="theory-avatar">{theory.author.slice(0, 1).toUpperCase()}</span><strong>{theory.author}</strong><span>reader theory</span></div><p>{theory.text}</p><div className="theory-votes"><button onClick={() => { const key = `${selectedStory.id}:${theory.author}`; setTheoryVotes((current) => { const next = { ...current, [key]: (current[key] ?? 0) + 1 }; localStorage.setItem(VOTES_KEY, JSON.stringify(next)); return next; }); }}><Heart size={14} /> {theory.votes + (theoryVotes[`${selectedStory.id}:${theory.author}`] ?? 0)}</button><button onClick={() => { setPrediction(`@${theory.author} — `); document.getElementById('theory-input')?.focus(); }}><MessageCircle size={14} /> Reply</button></div></article>)}</div></section>
           </article>
         </div>

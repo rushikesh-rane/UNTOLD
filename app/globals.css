@@ -138,6 +138,45 @@ button {
   gap: 11px
 }
 
+.profile-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 39px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #6f6478;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.profile-button svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.profile-button:hover {
+  background: #eee4f7;
+  border-color: #e3d5ef;
+  color: #563579;
+}
+
+@media (max-width: 680px) {
+  .profile-button {
+    min-height: 35px;
+    gap: 5px;
+    padding: 0 7px;
+    font-size: 10px;
+  }
+}
+
+
 .icon-button {
   width: 38px;
   height: 38px;
@@ -1590,7 +1629,7 @@ button {
 }
 
 .workspace-grid .intro-block {
-  padding: 45px 0 34px
+  padding: 45px 0 20px
 }
 
 .workspace-grid .intro-block h1 {
@@ -1603,7 +1642,7 @@ button {
 }
 
 .workspace-grid .feed-section {
-  padding-top: 31px
+  padding-top: 12px
 }
 
 .workspace-grid .feed-heading h2 {
@@ -2292,15 +2331,20 @@ body {
   }
 }
 
-@media(max-width:760px) {
-  .workspace-grid .intro-block h1 {
-    font-size: clamp(43px, 11vw, 62px)
+@media (max-width: 760px) {
+  .workspace-grid .intro-block {
+    padding: 35px 0 18px;
+  }
+
+  .workspace-grid .feed-section {
+    padding-top: 10px;
   }
 
   .right-sidebar {
     display: none
   }
 }
+
 
 /* Creator studio and product guide */
 .creator-shell,
@@ -4298,5 +4342,148 @@ img {
   article {
     min-width: 0;
     max-width: 100%;
+  }
+}
+
+.story-editor-wrapper {
+  min-height: 260px;
+  padding: 16px;
+  overflow: visible;
+}
+
+.story-editor .tiptap {
+  min-height: 220px;
+  outline: none;
+  line-height: 1.8;
+  white-space: normal;
+}
+
+.story-editor .tiptap p {
+  margin: 0 0 14px;
+}
+
+.story-editor .tiptap img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 560px;
+  object-fit: contain;
+  border-radius: 12px;
+  margin: 18px 0;
+}
+
+.story-editor .tiptap h1,
+.story-editor .tiptap h2,
+.story-editor .tiptap h3 {
+  margin: 18px 0 10px;
+}
+
+/* UNTOLD inline story editor */
+.story-editor-wrapper {
+  min-height: 260px;
+  height: auto;
+  padding: 16px;
+  overflow: visible;
+}
+
+.story-editor .tiptap {
+  min-height: 220px;
+  outline: none;
+  line-height: 1.8;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.story-editor .tiptap p {
+  margin: 0 0 14px;
+}
+
+.story-editor .tiptap img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 560px;
+  object-fit: contain;
+  border-radius: 12px;
+  margin: 18px 0;
+}
+
+.story-editor .tiptap h1,
+.story-editor .tiptap h2,
+.story-editor .tiptap h3 {
+  margin: 18px 0 10px;
+}
+
+.story-editor .tiptap:focus {
+  outline: none;
+}
+
+/* Image delete button in the story editor */
+.story-image-node {
+  margin: 18px 0;
+}
+
+
+.story-image-frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.story-image-frame img {
+  display: block;
+  width: 100%;
+  height: 360px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+
+
+
+.story-image-delete {
+  position: absolute;
+  top: 6px;
+  right: -12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  background: #e11d48;
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+
+.story-image-frame:hover .story-image-delete,
+.story-image-delete:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.story-image-delete:hover {
+  background: #be123c;
+  transform: scale(1.08);
+}
+
+@media (hover: none) {
+  .story-image-delete {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
