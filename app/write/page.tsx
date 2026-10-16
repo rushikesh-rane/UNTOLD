@@ -9,6 +9,7 @@ import EditorialSidebar from '@/components/EditorialSidebar';
 type Chapter = { id: string; title: string; body: string; reveal: 'now' | 'later' };
 type Draft = { id: string; title: string; category: string; synopsis: string; coverUrl?: string; chapters: Chapter[]; updatedAt: string };
 type PublishedStory = { id: string; title: string; genre: string; synopsis: string | null; published_at: string | null; chapters?: { id: string }[] };
+type EditableChapterRow = { id: string; title: string | null; body: string | null; position: number; is_revealed: boolean };
 
 const makeChapter = (n: number): Chapter => ({ id: `${Date.now()}-${n}`, title: n === 1 ? 'The setup' : `Part ${n}`, body: '', reveal: n === 1 ? 'now' : 'later' });
 
@@ -24,7 +25,6 @@ export default function WritePage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [notice, setNotice] = useState('');
   const [preview, setPreview] = useState(false);
-  const [userId, setUserId] = useState('');
   const [activeStoryId, setActiveStoryId] = useState<string | null>(null);
   const [activeStoryStatus, setActiveStoryStatus] = useState<'draft' | 'published'>('draft');
   const [busy, setBusy] = useState(false);
@@ -36,7 +36,6 @@ export default function WritePage() {
         const supabase = createClient();
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) { if (alive) notify('Please sign in to use Creator Studio.'); return; }
-        if (alive) setUserId(user.id);
         const { data, error } = await supabase.from('stories').select('id,title,genre,synopsis,cover_url,updated_at,status').eq('author_id', user.id).eq('status', 'draft').order('updated_at', { ascending: false });
         if (error) throw error;
         const { data: publishedRows, error: publishedError } = await supabase.from('stories').select('id,title,genre,synopsis,published_at,chapters(id)').eq('author_id', user.id).eq('status', 'published').order('published_at', { ascending: false });
@@ -107,9 +106,9 @@ export default function WritePage() {
       if (authError || !user) throw new Error('Please sign in again.');
       const { data: row, error } = await supabase.from('stories').select('id,title,genre,synopsis,cover_url,status,chapters(id,title,body,position,is_revealed)').eq('id', story.id).eq('author_id', user.id).eq('status', 'published').single();
       if (error) throw error;
-      const rows = [...(row.chapters ?? [])].sort((a: any, b: any) => a.position - b.position);
+      const rows = [...((row.chapters ?? []) as EditableChapterRow[])].sort((a, b) => a.position - b.position);
       setActiveStoryId(row.id); setActiveStoryStatus('published'); setTitle(row.title); setCategory(row.genre || 'Mystery'); setSynopsis(row.synopsis || ''); setCoverUrl(row.cover_url || '');
-      setChapters(rows.length ? rows.map((c: any) => ({ id: c.id, title: c.title || '', body: c.body || '', reveal: c.is_revealed ? 'now' as const : 'later' as const })) : [makeChapter(1)]);
+      setChapters(rows.length ? rows.map((c) => ({ id: c.id, title: c.title || '', body: c.body || '', reveal: c.is_revealed ? 'now' as const : 'later' as const })) : [makeChapter(1)]);
       setActiveChapter(0); window.scrollTo({ top: 0, behavior: 'smooth' }); notify(`Loaded published story “${row.title}” for editing.`);
     } catch (error) { notify(error instanceof Error ? error.message : 'Could not load this story.'); }
     finally { setBusy(false); }

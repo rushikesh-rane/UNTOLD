@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, BookOpen, Clock3, Eye, Lightbulb, MessageCircle, PenLine, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Clock3, Eye, Lightbulb, PenLine, Sparkles } from 'lucide-react';
 import EditorialSidebar from '@/components/EditorialSidebar';
 
 const readerSteps = [

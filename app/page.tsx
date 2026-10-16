@@ -10,6 +10,34 @@ import {
 import { stories as seedStories, type Story } from '@/lib/stories';
 import { createClient } from '@/lib/supabase/client';
 
+type CloudAuthor = {
+  display_name?: string | null;
+  username?: string | null;
+};
+
+type CloudChapter = {
+  title: string | null;
+  body: string | null;
+  is_revealed: boolean;
+  reveal_at: string | null;
+  position: number;
+};
+
+type CloudStory = {
+  id: string;
+  genre: string | null;
+  title: string;
+  synopsis: string | null;
+  author?: CloudAuthor | CloudAuthor[] | null;
+  profiles?: CloudAuthor | CloudAuthor[] | null;
+  chapters?: CloudChapter[] | null;
+};
+
+type CloudTheory = {
+  body: string;
+  profiles?: CloudAuthor | CloudAuthor[] | null;
+};
+
 type MediaStory = Story & {
   body: string[];
   lockedChapters?: { title: string; body: string }[];
@@ -122,16 +150,16 @@ export default function HomePage() {
           if (alive && bookmarks) setSavedStories(bookmarks.map((item) => item.story_id));
         }
         const response = await fetch('/api/stories', { cache: 'no-store' });
-        const payload = await response.json();
+        const payload = (await response.json()) as { stories?: CloudStory[] };
         if (response.ok && Array.isArray(payload.stories) && alive) {
-          const cloudStories: MediaStory[] = payload.stories.map((item: any) => {
+          const cloudStories: MediaStory[] = payload.stories.map((item) => {
             const authorSource = item.author ?? item.profiles;
             const author = Array.isArray(authorSource) ? authorSource[0] : authorSource;
-            const chapters = (item.chapters ?? []).filter((chapter: any) => chapter.is_revealed && (!chapter.reveal_at || new Date(chapter.reveal_at) <= new Date())).sort((a: any, b: any) => a.position - b.position);
-            const rawBody = chapters.flatMap((chapter: any) => [chapter.title, chapter.body]).filter(Boolean) as string[];
+            const chapters = (item.chapters ?? []).filter((chapter) => chapter.is_revealed && (!chapter.reveal_at || new Date(chapter.reveal_at) <= new Date())).sort((a, b) => a.position - b.position);
+            const rawBody = chapters.flatMap((chapter) => [chapter.title, chapter.body]).filter((text): text is string => Boolean(text));
             const images = rawBody.flatMap((text: string) => Array.from(text.matchAll(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g), (match) => ({ src: match[2], alt: match[1] || 'Story illustration', caption: match[1] || 'A moment from the story' })));
             const body = rawBody.map((text: string) => text.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '').trim()).filter(Boolean);
-            return { id: item.id, category: /real life/i.test(item.genre) ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images, theories: [], audioLabel: 'Listen to the opening' };
+            return { id: item.id, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images, theories: [], audioLabel: 'Listen to the opening' };
           });
           setPublishedStories((current) => [...cloudStories, ...current.filter((old) => !cloudStories.some((cloud) => cloud.id === old.id))]);
         }
@@ -150,11 +178,7 @@ export default function HomePage() {
         const available = item.chapters.filter((chapter) => chapter.reveal === 'now');
         const locked = item.chapters.filter((chapter) => chapter.reveal === 'later');
         const category = /real life/i.test(item.category) ? 'REAL LIFE' as const : 'FICTION' as const;
-        const availableText = available.flatMap((chapter) => [chapter.title, chapter.body]).filter(Boolean);
-        const imagePattern = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g;
-        const images = availableText.flatMap((text) => Array.from(text.matchAll(imagePattern), (match) => ({ src: match[2], alt: match[1] || 'Story illustration', caption: match[1] || 'A moment from the story' })));
-        const body = availableText.map((text) => text.replace(imagePattern, '').trim()).filter(Boolean);
-        return { id: item.id, category, title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: item.author || 'You', handle: '@you', initials: 'YO', color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: locked.length ? 'More to come' : 'Complete', progress: locked.length ? 50 : 100, body, images, theories: [], audioLabel: 'Listen to the opening', lockedChapters: locked.map(({ title, body }) => ({ title, body })) };
+        return { id: item.id, category, title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: item.author || 'You', handle: '@you', initials: 'YO', color: 'violet', readTime: `${Math.max(1, Math.ceil(available.reduce((n, c) => n + c.body.length, 0) / 900))} min read`, predictions: 0, comments: 0, reveal: locked.length ? 'More to come' : 'Complete', progress: locked.length ? 50 : 100, body: available.flatMap((chapter) => [chapter.title, chapter.body]).filter(Boolean), images: [], theories: [], audioLabel: 'Listen to the opening', lockedChapters: locked.map(({ title, body }) => ({ title, body })) };
       }));
     } catch { /* Ignore malformed local prototype data and keep the sample stories available. */ }
     return () => { alive = false; window.removeEventListener('focus', refreshPublishedStories); document.removeEventListener('visibilitychange', refreshPublishedStories); };
@@ -203,7 +227,11 @@ export default function HomePage() {
         const response = await fetch(`/api/theories?storyId=${encodeURIComponent(story.id)}`, { cache: 'no-store' });
         const result = await response.json();
         if (response.ok && Array.isArray(result.theories)) {
-          const theories = result.theories.map((item: any) => ({ author: (Array.isArray(item.profiles) ? item.profiles[0] : item.profiles)?.username || (Array.isArray(item.profiles) ? item.profiles[0] : item.profiles)?.display_name || 'reader', text: item.body, votes: 0 }));
+          const theoryPayload = result as { theories?: CloudTheory[] };
+          const theories = (theoryPayload.theories ?? []).map((item) => {
+            const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+            return { author: profile?.username || profile?.display_name || 'reader', text: item.body, votes: 0 };
+          });
           setSelectedStory((current) => current?.id === story.id ? { ...current, theories } : current);
         }
       } catch { /* Reader can still use the story if theories fail to load. */ }
@@ -348,7 +376,7 @@ export default function HomePage() {
             <div className="reader-tools"><button className={`listen-button ${isSpeaking ? 'listening' : ''}`} onClick={toggleNarration}>{isSpeaking ? <Pause size={16} /> : <Headphones size={16} />}{isSpeaking ? 'Pause narration' : 'Listen to story'}<span><Volume2 size={13} /> browser audio</span></button><button className={`reader-save ${savedStories.includes(selectedStory.id) ? 'is-saved' : ''}`} onClick={() => toggleSave(selectedStory.id)}>{savedStories.includes(selectedStory.id) ? <Check size={16} /> : <Bookmark size={16} />}{savedStories.includes(selectedStory.id) ? 'Saved' : 'Save story'}</button></div>
             <div className="reader-body">{selectedStory.body.slice(0, 2).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
             <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} /><span className="gallery-caption">{image.caption}</span><span className="gallery-expand"><Plus size={16} /></span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
-            {(selectedStory.lockedChapters?.length || selectedStory.body.length > 2 || selectedStory.progress < 100) ? <section className="locked-chapter-list"><div className="reveal-card"><div className="reveal-card-icon"><Clock3 size={18} /></div><div><span className="eyebrow muted-eyebrow">THE REST IS STILL HIDDEN</span><h3>The story isn't over.</h3><p>Titles are visible. The words stay hidden until the creator reveals them.</p></div><span className="reveal-status">REVEAL PENDING</span></div>{(selectedStory.lockedChapters?.length ? selectedStory.lockedChapters : selectedStory.body.slice(2).map((body, index) => ({ title: index === 0 ? 'The next clue' : `Part II · ${index + 1}`, body }))).map((chapter, index) => <section className="reader-locked-part" key={`${chapter.title}-${index}`}><p className="eyebrow muted-eyebrow">PART {String(index + 2).padStart(2, '0')} · REVEAL LATER</p><h3>{chapter.title}</h3><div className="reader-locked-copy" aria-label="Chapter content hidden">{chapter.body || 'The next part is waiting to be revealed.'}</div><div className="reader-locked-message"><Clock3 size={16}/><strong>This part is still hidden</strong><span>Come back when the creator reveals it.</span></div></section>)}</section> : null}
+            {(selectedStory.lockedChapters?.length || selectedStory.body.length > 2 || selectedStory.progress < 100) ? <section className="locked-chapter-list"><div className="reveal-card"><div className="reveal-card-icon"><Clock3 size={18} /></div><div><span className="eyebrow muted-eyebrow">THE REST IS STILL HIDDEN</span><h3>The story isn&apos;t over.</h3><p>Titles are visible. The words stay hidden until the creator reveals them.</p></div><span className="reveal-status">REVEAL PENDING</span></div>{(selectedStory.lockedChapters?.length ? selectedStory.lockedChapters : selectedStory.body.slice(2).map((body, index) => ({ title: index === 0 ? 'The next clue' : `Part II · ${index + 1}`, body }))).map((chapter, index) => <section className="reader-locked-part" key={`${chapter.title}-${index}`}><p className="eyebrow muted-eyebrow">PART {String(index + 2).padStart(2, '0')} · REVEAL LATER</p><h3>{chapter.title}</h3><div className="reader-locked-copy" aria-label="Chapter content hidden">{chapter.body || 'The next part is waiting to be revealed.'}</div><div className="reader-locked-message"><Clock3 size={16}/><strong>This part is still hidden</strong><span>Come back when the creator reveals it.</span></div></section>)}</section> : null}
             <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length + (submittedPredictions[selectedStory.id]?.length ?? 0)} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{(submittedPredictions[selectedStory.id] ?? []).map((text, index) => <article className="theory-card own-theory" key={`${text}-${index}`}><div className="theory-author"><span className="theory-avatar">Y</span><strong>you</strong><span>just now</span><span className="own-label">YOUR THEORY</span></div><p>{text}</p></article>)}{selectedStory.theories.map((theory) => <article className="theory-card" key={theory.author}><div className="theory-author"><span className="theory-avatar">{theory.author.slice(0, 1).toUpperCase()}</span><strong>{theory.author}</strong><span>reader theory</span></div><p>{theory.text}</p><div className="theory-votes"><button onClick={() => { const key = `${selectedStory.id}:${theory.author}`; setTheoryVotes((current) => { const next = { ...current, [key]: (current[key] ?? 0) + 1 }; localStorage.setItem(VOTES_KEY, JSON.stringify(next)); return next; }); }}><Heart size={14} /> {theory.votes + (theoryVotes[`${selectedStory.id}:${theory.author}`] ?? 0)}</button><button onClick={() => { setPrediction(`@${theory.author} — `); document.getElementById('theory-input')?.focus(); }}><MessageCircle size={14} /> Reply</button></div></article>)}</div></section>
           </article>
         </div>
