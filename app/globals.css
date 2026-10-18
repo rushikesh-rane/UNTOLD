@@ -4487,3 +4487,25 @@ img {
     pointer-events: auto;
   }
 }
+/* Public creator profiles and clickable identities */
+.reader-profile-link { display: flex; align-items: center; gap: 11px; flex: 1; min-width: 0; color: inherit; text-decoration: none; border-radius: 8px; }
+.reader-profile-link:hover strong, .theory-profile-link:hover strong, .community-note-author:hover strong, .public-person-row h3 a:hover { color: #80549e; text-decoration: underline; }
+.reader-profile-link > div { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.reader-profile-link strong { font-size: 12px; }
+.reader-profile-link span { font-size: 10px; color: #9a929e; }
+.theory-profile-link, .community-note-author { color: inherit; text-decoration: none; }
+.public-profile-card { margin-bottom: 40px; }
+.public-profile-joined { display: flex; align-items: center; gap: 7px; color: #92879a; font-size: 12px; margin-top: 14px; }
+.public-profile-stats { display: flex; gap: 12px; margin: 20px 0; }
+.public-profile-stats a { display: flex; flex-direction: column; gap: 3px; min-width: 112px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: inherit; }
+.public-profile-stats a:hover { border-color: #bba5ce; background: #fbf8fd; }
+.public-profile-stats strong { font-size: 20px; color: #6f5589; }
+.public-profile-stats span { font-size: 11px; color: #8c8292; }
+.public-profile-follow { margin: 10px 0 20px; }
+.public-profile-follow .creator-primary { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.public-profile-follow p { font-size: 12px; color: #7c6d86; }
+.public-person-row { display: flex; align-items: center; gap: 14px; }
+.public-person-row h3 a { color: inherit; text-decoration: none; }
+.community-profile-link { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
+.community-profile-link:hover h3 { color: #80549e; text-decoration: underline; }
+@media (max-width: 560px) { .public-profile-stats { gap: 8px; } .public-profile-stats a { min-width: 0; flex: 1; padding: 10px; } }

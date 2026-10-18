@@ -1,19 +1,22 @@
+
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, UserRound } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 
-type ProfileSummary = {
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+type Person = {
   id: string;
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
 };
 
-type FollowListItem = {
+type FollowRow = {
   created_at: string;
-  follower: ProfileSummary | ProfileSummary[] | null;
-  followed: ProfileSummary | ProfileSummary[] | null;
+  person: Person | Person[] | null;
 };
 
 export default async function FollowListPage({
@@ -21,26 +24,32 @@ export default async function FollowListPage({
 }: {
   params: Promise<{ username: string; list: string }>;
 }) {
-  const { username, list } = await params;
+  const { username: routeKey, list } = await params;
 
-  if (list !== 'followers' && list !== 'following') notFound();
+  if (list !== 'followers' && list !== 'following') {
+    notFound();
+  }
 
   const supabase = await createClient();
 
-  const { data: owner } = await supabase
+  const ownerQuery = supabase
     .from('profiles')
-    .select('id, username, display_name')
-    .ilike('username', username)
-    .maybeSingle();
+    .select('id,username,display_name');
 
-  if (!owner) notFound();
+  const { data: owner } = UUID.test(routeKey)
+    ? await ownerQuery.eq('id', routeKey).maybeSingle()
+    : await ownerQuery.ilike('username', routeKey).maybeSingle();
+
+  if (!owner) {
+    notFound();
+  }
 
   const column = list === 'followers' ? 'followed_id' : 'follower_id';
 
   const join =
     list === 'followers'
-      ? 'follower:profiles!follows_follower_id_fkey(id,username,display_name,avatar_url)'
-      : 'followed:profiles!follows_followed_id_fkey(id,username,display_name,avatar_url)';
+      ? 'person:profiles!follows_follower_id_fkey(id,username,display_name,avatar_url)'
+      : 'person:profiles!follows_followed_id_fkey(id,username,display_name,avatar_url)';
 
   const { data, error } = await supabase
     .from('follows')
@@ -48,25 +57,28 @@ export default async function FollowListPage({
     .eq(column, owner.id)
     .order('created_at', { ascending: false });
 
-  const title = list === 'followers' ? 'Followers' : 'Following';
-
-  const people: ProfileSummary[] = ((data ?? []) as unknown as FollowListItem[])
+  const people = ((data ?? []) as unknown as FollowRow[])
     .map((item) => {
-      const person = item.follower ?? item.followed;
-      return Array.isArray(person) ? person[0] : person;
+      const person = item.person;
+      return Array.isArray(person) ? person[0] ?? null : person;
     })
-    .filter((person): person is ProfileSummary => person !== null && person !== undefined);
+    .filter((person): person is Person => Boolean(person));
+
+  const ownerRoute = owner.username || owner.id;
+  const title = list === 'followers' ? 'Followers' : 'Following';
 
   return (
     <main className="auth-shell has-editorial-layout">
       <header className="auth-topbar">
-        <Link href={`/u/${owner.username}`} className="creator-back">
-          <ArrowLeft size={16} /> Back to profile
+        <Link href={`/u/${ownerRoute}`} className="creator-back">
+          <ArrowLeft size={16} />
+          Back to profile
         </Link>
 
         <Link href="/" className="brand-lockup">
           <span className="brand-word">
-            un<span>told</span><i>.</i>
+            un<span>told</span>
+            <i>.</i>
           </span>
         </Link>
 
@@ -77,7 +89,12 @@ export default async function FollowListPage({
         className="auth-card account-card"
         style={{ maxWidth: 760 }}
       >
-        <p className="creator-kicker">@{owner.username}</p>
+        <p className="creator-kicker">
+          {owner.username
+            ? `@${owner.username}`
+            : owner.display_name || 'UNTOLD member'}
+        </p>
+
         <h1>{title}</h1>
 
         {error ? (
@@ -87,10 +104,20 @@ export default async function FollowListPage({
         ) : people.length ? (
           <div className="account-story-list">
             {people.map((person) => (
-              <article className="account-story-item" key={person.id}>
+              <article
+                className="account-story-item public-person-row"
+                key={person.id}
+              >
                 <div className="account-avatar">
                   {person.avatar_url ? (
-                    <img src={person.avatar_url} alt="" />
+                    <img
+                      src={person.avatar_url}
+                      alt={
+                        person.display_name
+                          ? `${person.display_name}'s avatar`
+                          : 'Profile avatar'
+                      }
+                    />
                   ) : (
                     <UserRound size={20} />
                   )}
@@ -98,13 +125,7 @@ export default async function FollowListPage({
 
                 <div>
                   <h3>
-                    <Link
-                      href={
-                        person.username
-                          ? `/u/${person.username}`
-                          : '/community'
-                      }
-                    >
+                    <Link href={`/u/${person.username || person.id}`}>
                       {person.display_name ||
                         person.username ||
                         'UNTOLD reader'}
@@ -114,7 +135,7 @@ export default async function FollowListPage({
                   <p>
                     {person.username
                       ? `@${person.username}`
-                      : 'Username not set'}
+                      : 'UNTOLD member'}
                   </p>
                 </div>
               </article>

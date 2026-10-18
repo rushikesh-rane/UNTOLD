@@ -119,21 +119,7 @@ const SAVED_KEY = 'untold.saved-stories.v1';
 const THEORIES_KEY = 'untold.reader-theories.v1';
 const VOTES_KEY = 'untold.theory-votes.v1';
 const PUBLISHED_KEY = 'untold.published-stories.v1';
-type LocalPublishedStory = {
-  id: string;
-  title: string;
-  category: string;
-  synopsis: string;
-  chapters: {
-    id: string;
-    title: string;
-    body: string;
-    reveal: 'now' | 'later';
-  }[];
-  author?: string;
-  author_id?: string;
-  publishedAt?: string;
-};
+type LocalPublishedStory = { id: string; title: string; category: string; synopsis: string; chapters: { id: string; title: string; body: string; reveal: 'now' | 'later' }[]; author?: string; author_id?: string; publishedAt?: string };
 
 function Avatar({ initials, color }: { initials: string; color: string }) {
   return <span className={`avatar avatar-${color}`}>{initials}</span>;
@@ -166,13 +152,11 @@ export default function HomePage() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data: bookmarks } = await supabase.from('bookmarks').select('story_id').eq('user_id', user.id);
-          if (alive && bookmarks) setSavedStories(bookmarks.map((item) => item.story_id));
           const followResponse = await fetch('/api/follows', { cache: 'no-store' });
           const followPayload = await followResponse.json().catch(() => ({}));
-          if (alive && followResponse.ok && Array.isArray(followPayload.follows)) {
-            setFollowedIds(followPayload.follows.map((item: { followed_id: string }) => item.followed_id));
-          }
+          if (alive && followResponse.ok && Array.isArray(followPayload.follows)) setFollowedIds(followPayload.follows.map((item: { followed_id: string }) => item.followed_id));
+          const { data: bookmarks } = await supabase.from('bookmarks').select('story_id').eq('user_id', user.id);
+          if (alive && bookmarks) setSavedStories(bookmarks.map((item) => item.story_id));
         }
         const response = await fetch('/api/stories', { cache: 'no-store' });
         const payload = (await response.json()) as { stories?: CloudStory[] };
@@ -182,21 +166,8 @@ export default function HomePage() {
             const author = Array.isArray(authorSource) ? authorSource[0] : authorSource;
             const chapters = (item.chapters ?? []).filter((chapter) => chapter.is_revealed && (!chapter.reveal_at || new Date(chapter.reveal_at) <= new Date())).sort((a, b) => a.position - b.position);
             const body = chapters.flatMap((chapter) => [chapter.title, chapter.body]).filter((text): text is string => Boolean(text));
-            return {
-              id: item.id,
-              authorId: item.author_id || undefined,
-              category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION',
-              title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images: [], theories: [], audioLabel: 'Listen to the opening'
-            };
+            return { id: item.id, authorId: item.author_id || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images: [], theories: [], audioLabel: 'Listen to the opening' };
           });
-          console.log(
-            'UNTOLD cloud stories:',
-            cloudStories.map((story) => ({
-              title: story.title,
-              id: story.id,
-              authorId: story.authorId,
-            }))
-          );
           setPublishedStories((current) => [...cloudStories, ...current.filter((old) => !cloudStories.some((cloud) => cloud.id === old.id))]);
         }
       } catch { /* Keep the sample discovery experience available if cloud loading fails. */ }
@@ -257,11 +228,6 @@ export default function HomePage() {
     setIsSpeaking(false);
     setPrediction('');
     setSelectedStory(story);
-    console.log('UNTOLD selected story:', {
-      title: story.title,
-      id: story.id,
-      authorId: story.authorId,
-    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(story.id)) {
       try {
@@ -471,28 +437,12 @@ export default function HomePage() {
             <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'FICTION' ? 'pill-fiction' : ''}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>PART I · THE SETUP</span></div>
             <h1 className="reader-title">{selectedStory.title}</h1>
             <p className="reader-deck">{selectedStory.excerpt}</p>
-            <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div>{selectedStory.authorId ? <button className="follow-button" disabled={followLoading} onClick={async () => {
-              const creatorId = selectedStory.authorId!;
-              const isFollowing = followedIds.includes(creatorId);
-              setFollowLoading(true);
-              try {
-                const response = await fetch(isFollowing ? `/api/follows?creatorId=${encodeURIComponent(creatorId)}` : '/api/follows', {
-                  method: isFollowing ? 'DELETE' : 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: isFollowing ? undefined : JSON.stringify({ creatorId }),
-                });
-                const result = await response.json().catch(() => ({}));
-                if (!response.ok) { showNotice(result.error || 'Sign in to follow this creator.'); return; }
-                setFollowedIds((current) => isFollowing ? current.filter((id) => id !== creatorId) : [...current, creatorId]);
-                showNotice(isFollowing ? 'You unfollowed this creator.' : 'You are now following this creator.');
-              } catch { showNotice('Could not update your follow. Try again.'); }
-              finally { setFollowLoading(false); }
-            }}>{followedIds.includes(selectedStory.authorId) ? 'Following' : 'Follow'} {followedIds.includes(selectedStory.authorId) ? <Check size={13} /> : <Plus size={13} />}</button> : <button className="follow-button" onClick={() => showNotice('This sample story has no connected creator account yet.')}>Follow <Plus size={13} /></button>}</div>
+            <div className="reader-byline">{selectedStory.authorId ? <Link href={`/u/${selectedStory.authorId}`} className="reader-profile-link"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · View profile</span></div></Link> : <><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div></>}{selectedStory.authorId ? <button className="follow-button" disabled={followLoading} onClick={async () => { const creatorId = selectedStory.authorId!; const isFollowing = followedIds.includes(creatorId); setFollowLoading(true); try { const response = await fetch(isFollowing ? `/api/follows?creatorId=${encodeURIComponent(creatorId)}` : '/api/follows', { method: isFollowing ? 'DELETE' : 'POST', headers: { 'Content-Type': 'application/json' }, body: isFollowing ? undefined : JSON.stringify({ creatorId }) }); const result = await response.json().catch(() => ({})); if (!response.ok) { showNotice(result.error || 'Sign in to follow this creator.'); return; } setFollowedIds((current) => isFollowing ? current.filter((id) => id !== creatorId) : current.includes(creatorId) ? current : [...current, creatorId]); showNotice(isFollowing ? 'You unfollowed this creator.' : 'You are now following this creator.'); } catch { showNotice('Could not update your follow. Try again.'); } finally { setFollowLoading(false); } }}>{followLoading ? 'Please wait…' : followedIds.includes(selectedStory.authorId) ? 'Following' : 'Follow'} {followedIds.includes(selectedStory.authorId) ? <Check size={13} /> : <Plus size={13} />}</button> : <button className="follow-button" onClick={() => showNotice('This sample story has no connected creator account yet.')}>Follow <Plus size={13} /></button>}</div>
             <div className="reader-tools"><button className={`listen-button ${isSpeaking ? 'listening' : ''}`} onClick={toggleNarration}>{isSpeaking ? <Pause size={16} /> : <Headphones size={16} />}{isSpeaking ? 'Pause narration' : 'Listen to story'}<span><Volume2 size={13} /> browser audio</span></button><button className={`reader-save ${savedStories.includes(selectedStory.id) ? 'is-saved' : ''}`} onClick={() => toggleSave(selectedStory.id)}>{savedStories.includes(selectedStory.id) ? <Check size={16} /> : <Bookmark size={16} />}{savedStories.includes(selectedStory.id) ? 'Saved' : 'Save story'}</button></div>
             <div className="reader-body">{selectedStory.body.slice(0, 2).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
             <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} /><span className="gallery-caption">{image.caption}</span><span className="gallery-expand"><Plus size={16} /></span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
             {(selectedStory.lockedChapters?.length || selectedStory.body.length > 2 || selectedStory.progress < 100) ? <section className="locked-chapter-list"><div className="reveal-card"><div className="reveal-card-icon"><Clock3 size={18} /></div><div><span className="eyebrow muted-eyebrow">THE REST IS STILL HIDDEN</span><h3>The story isn&apos;t over.</h3><p>Titles are visible. The words stay hidden until the creator reveals them.</p></div><span className="reveal-status">REVEAL PENDING</span></div>{(selectedStory.lockedChapters?.length ? selectedStory.lockedChapters : selectedStory.body.slice(2).map((body, index) => ({ title: index === 0 ? 'The next clue' : `Part II · ${index + 1}`, body }))).map((chapter, index) => <section className="reader-locked-part" key={`${chapter.title}-${index}`}><p className="eyebrow muted-eyebrow">PART {String(index + 2).padStart(2, '0')} · REVEAL LATER</p><h3>{chapter.title}</h3><div className="reader-locked-copy" aria-label="Chapter content hidden">{chapter.body || 'The next part is waiting to be revealed.'}</div><div className="reader-locked-message"><Clock3 size={16} /><strong>This part is still hidden</strong><span>Come back when the creator reveals it.</span></div></section>)}</section> : null}
-            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length + (submittedPredictions[selectedStory.id]?.length ?? 0)} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{(submittedPredictions[selectedStory.id] ?? []).map((text, index) => <article className="theory-card own-theory" key={`${text}-${index}`}><div className="theory-author"><span className="theory-avatar">Y</span><strong>you</strong><span>just now</span><span className="own-label">YOUR THEORY</span></div><p>{text}</p></article>)}{selectedStory.theories.map((theory) => <article className="theory-card" key={theory.author}><div className="theory-author"><span className="theory-avatar">{theory.author.slice(0, 1).toUpperCase()}</span><strong>{theory.author}</strong><span>reader theory</span></div><p>{theory.text}</p><div className="theory-votes"><button onClick={() => { const key = `${selectedStory.id}:${theory.author}`; setTheoryVotes((current) => { const next = { ...current, [key]: (current[key] ?? 0) + 1 }; localStorage.setItem(VOTES_KEY, JSON.stringify(next)); return next; }); }}><Heart size={14} /> {theory.votes + (theoryVotes[`${selectedStory.id}:${theory.author}`] ?? 0)}</button><button onClick={() => { setPrediction(`@${theory.author} — `); document.getElementById('theory-input')?.focus(); }}><MessageCircle size={14} /> Reply</button></div></article>)}</div></section>
+            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length + (submittedPredictions[selectedStory.id]?.length ?? 0)} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{(submittedPredictions[selectedStory.id] ?? []).map((text, index) => <article className="theory-card own-theory" key={`${text}-${index}`}><div className="theory-author"><span className="theory-avatar">Y</span><strong>you</strong><span>just now</span><span className="own-label">YOUR THEORY</span></div><p>{text}</p></article>)}{selectedStory.theories.map((theory) => <article className="theory-card" key={theory.author}><div className="theory-author"><span className="theory-avatar">{theory.author.slice(0, 1).toUpperCase()}</span>{theory.userId ? <Link href={`/u/${theory.userId}`} className="theory-profile-link"><strong>{theory.author}</strong></Link> : <strong>{theory.author}</strong>}<span>reader theory</span></div><p>{theory.text}</p><div className="theory-votes"><button onClick={() => { const key = `${selectedStory.id}:${theory.author}`; setTheoryVotes((current) => { const next = { ...current, [key]: (current[key] ?? 0) + 1 }; localStorage.setItem(VOTES_KEY, JSON.stringify(next)); return next; }); }}><Heart size={14} /> {theory.votes + (theoryVotes[`${selectedStory.id}:${theory.author}`] ?? 0)}</button><button onClick={() => { setPrediction(`@${theory.author} — `); document.getElementById('theory-input')?.focus(); }}><MessageCircle size={14} /> Reply</button></div></article>)}</div></section>
           </article>
         </div>
       )}
