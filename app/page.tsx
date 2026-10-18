@@ -10,6 +10,7 @@ import {
 import { type Story } from '@/lib/stories';
 import { createClient } from '@/lib/supabase/client';
 import ThemeToggle from '@/components/ThemeToggle';
+import { StoryListSkeleton, TheorySkeleton } from '@/components/Skeletons';
 
 type CloudAuthor = {
   display_name?: string | null;
@@ -99,6 +100,7 @@ export default function HomePage() {
   const [selectedStory, setSelectedStory] = useState<MediaStory | null>(null);
   const [prediction, setPrediction] = useState('');
   const [storiesLoaded, setStoriesLoaded] = useState(false);
+  const [discussionLoading, setDiscussionLoading] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newOpening, setNewOpening] = useState('');
@@ -111,7 +113,9 @@ export default function HomePage() {
 
   useEffect(() => {
     let alive = true;
+    let lastLoad = 0;
     async function loadCloudData() {
+      lastLoad = Date.now();
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -140,7 +144,8 @@ export default function HomePage() {
       finally { if (alive) setStoriesLoaded(true); }
     }
     loadCloudData();
-    const refreshPublishedStories = () => { if (document.visibilityState === 'visible') void loadCloudData(); };
+    // At most once a minute: every refresh re-downloads all stories with their chapters.
+    const refreshPublishedStories = () => { if (document.visibilityState === 'visible' && Date.now() - lastLoad > 60_000) void loadCloudData(); };
     window.addEventListener('focus', refreshPublishedStories);
     document.addEventListener('visibilitychange', refreshPublishedStories);
     try {
@@ -154,6 +159,17 @@ export default function HomePage() {
   }, []);
 
   const allStories = useMemo(() => publishedStories, [publishedStories]);
+
+  // Deep link from profiles: /?story=<id> opens that story once the list has loaded.
+  const deepLinkHandled = useRef(false);
+  useEffect(() => {
+    if (!storiesLoaded || deepLinkHandled.current) return;
+    deepLinkHandled.current = true;
+    const id = new URLSearchParams(window.location.search).get('story');
+    if (!id) return;
+    const target = publishedStories.find((story) => story.id === id);
+    if (target) void openStory(target);
+  }, [storiesLoaded, publishedStories]);
   const filteredStories = useMemo(() => allStories.filter((story) => {
     const haystack = `${story.title} ${story.excerpt} ${story.category} ${story.author} ${story.body.join(' ')}`.toLowerCase();
     const matchesSearch = haystack.includes(searchTerm.toLowerCase());
@@ -230,9 +246,10 @@ export default function HomePage() {
     setPrediction('');
     setReplyingTo(null);
     setReplyDraft('');
+    setDiscussionLoading(true);
     setSelectedStory(story);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    await loadDiscussion(story.id);
+    try { await loadDiscussion(story.id); } finally { setDiscussionLoading(false); }
   }
 
   // One like per person per theory: clicking again removes it. Cloud likes are enforced by the database too.
@@ -418,6 +435,7 @@ export default function HomePage() {
                               src={story.coverUrl}
                               alt=""
                               loading={index < 3 ? 'eager' : 'lazy'}
+                              decoding="async"
                               onError={(event) => {
                                 event.currentTarget.style.display = 'none';
                                 event.currentTarget.parentElement?.classList.add('cover-load-failed');
@@ -488,6 +506,8 @@ export default function HomePage() {
                     </article>
                   ))}
                 </div>
+              ) : !storiesLoaded ? (
+                <StoryListSkeleton />
               ) : (
                 <div className="empty-state">
                   <Search size={23} />
@@ -549,9 +569,9 @@ export default function HomePage() {
             <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div>{!(currentUserId && selectedStory.authorId === currentUserId) && <button className={`follow-button${selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? ' is-following' : ''}`} aria-pressed={Boolean(selectedStory.authorId && followedIds.includes(selectedStory.authorId))} onClick={() => void toggleFollow(selectedStory)}>{selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? <>Following <Check size={13} /></> : <>Follow <Plus size={13} /></>}</button>}</div>
             <div className="reader-tools"><button className={`listen-button ${isSpeaking ? 'listening' : ''}`} onClick={toggleNarration}>{isSpeaking ? <Pause size={16} /> : <Headphones size={16} />}{isSpeaking ? 'Pause narration' : 'Listen to story'}<span><Volume2 size={13} /> browser audio</span></button><button className={`reader-save ${savedStories.includes(selectedStory.id) ? 'is-saved' : ''}`} onClick={() => toggleSave(selectedStory.id)}>{savedStories.includes(selectedStory.id) ? <Check size={16} /> : <Bookmark size={16} />}{savedStories.includes(selectedStory.id) ? 'Saved' : 'Save story'}</button></div>
             <div className="reader-body">{selectedStory.body.slice(0, 2).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
-            <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} /><span className="gallery-caption">{image.caption}</span><span className="gallery-expand"><Plus size={16} /></span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
+            <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} loading="lazy" decoding="async" /><span className="gallery-caption">{image.caption}</span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
             {(selectedStory.lockedChapters?.length || selectedStory.body.length > 2 || selectedStory.progress < 100) ? <section className="locked-chapter-list"><div className="reveal-card"><div className="reveal-card-icon"><Clock3 size={18} /></div><div><span className="eyebrow muted-eyebrow">THE REST IS STILL HIDDEN</span><h3>The story isn&apos;t over.</h3><p>Titles are visible. The words stay hidden until the creator reveals them.</p></div><span className="reveal-status">REVEAL PENDING</span></div>{(selectedStory.lockedChapters?.length ? selectedStory.lockedChapters : selectedStory.body.slice(2).map((body, index) => ({ title: index === 0 ? 'The next clue' : `Part II · ${index + 1}`, body }))).map((chapter, index) => <section className="reader-locked-part" key={`${chapter.title}-${index}`}><p className="eyebrow muted-eyebrow">PART {String(index + 2).padStart(2, '0')} · REVEAL LATER</p><h3>{chapter.title}</h3><div className="reader-locked-copy" aria-label="Chapter content hidden">{chapter.body || 'The next part is waiting to be revealed.'}</div><div className="reader-locked-message"><Clock3 size={16} /><strong>This part is still hidden</strong><span>Come back when the creator reveals it.</span></div></section>)}</section> : null}
-            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{selectedStory.theories.map((theory) => {
+            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{discussionLoading && !selectedStory.theories.length ? <TheorySkeleton /> : null}{selectedStory.theories.map((theory) => {
               const liked = Boolean(likedTheories[theory.id]);
               const isReplying = replyingTo === theory.id;
               return <article className="theory-card" key={theory.id}>

@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Suspense } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import {
   BookOpen,
   Compass,
@@ -20,7 +21,22 @@ const items = [
   { href: '/community?tab=predictions', label: 'Predictions', icon: Bell },
 ];
 
+// useSearchParams needs a Suspense boundary on statically rendered pages (e.g. /how-it-works),
+// so the sidebar renders without a tab first and fills it in once the URL is available.
 export default function EditorialSidebar() {
+  return (
+    <Suspense fallback={<SidebarContent tab={null} />}>
+      <SidebarWithTab />
+    </Suspense>
+  );
+}
+
+function SidebarWithTab() {
+  const tab = useSearchParams().get('tab');
+  return <SidebarContent tab={tab} />;
+}
+
+function SidebarContent({ tab }: { tab: string | null }) {
   const pathname = usePathname();
 
   return (
@@ -38,11 +54,14 @@ export default function EditorialSidebar() {
 
       <nav className="editorial-nav" aria-label="Your space">
         {items.map(({ href, label, icon: Icon }) => {
-          const targetPath = href.split('?')[0];
+          const [targetPath, query = ''] = href.split('?');
+          const targetTab = new URLSearchParams(query).get('tab');
+          // Discover matches the home page; community links must match both the path and ?tab=
+          // (the community page opens on Reading list when no tab is given).
           const active =
             label === 'Discover'
               ? pathname === '/'
-              : pathname === targetPath;
+              : pathname === targetPath && (tab ?? 'reading-list') === targetTab;
 
           return (
             <Link
@@ -64,7 +83,11 @@ export default function EditorialSidebar() {
 
       
 
-      <Link href="/account" className="editorial-profile">
+      <Link
+        href="/account"
+        className="editorial-profile"
+        aria-current={pathname === '/account' ? 'page' : undefined}
+      >
         <span className="editorial-profile-avatar">
           <UserRound size={16} aria-hidden="true" />
         </span>

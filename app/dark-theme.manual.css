@@ -15,3 +15,13 @@ html[data-theme='dark'] textarea::placeholder {
 html[data-theme='dark'] img {
   filter: brightness(.92);
 }
+
+/* Account/How-it-works nav bar: no boxed background, so edges never look clipped */
+html[data-theme='dark'] .editorial-sidebar {
+  background: transparent;
+}
+
+/* Loading shimmer: softer highlight on dark backgrounds */
+html[data-theme='dark'] .sk::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .07), transparent);
+}

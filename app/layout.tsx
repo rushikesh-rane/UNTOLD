@@ -1,6 +1,13 @@
 import type { Metadata, Viewport } from 'next';
+import { DM_Mono, DM_Sans, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import './dark-theme.css';
+import NavigationProgress from '@/components/NavigationProgress';
+
+// Self-hosted at build time: no request to Google at runtime and no render-blocking CSS @import.
+const sans = DM_Sans({ subsets: ['latin'], display: 'swap', variable: '--font-dm-sans' });
+const mono = DM_Mono({ subsets: ['latin'], weight: ['400', '500'], display: 'swap', variable: '--font-dm-mono' });
+const serif = Playfair_Display({ subsets: ['latin'], style: ['normal', 'italic'], display: 'swap', variable: '--font-playfair' });
 
 export const metadata: Metadata = {
   title: 'UNTOLD — Every story has another side',
@@ -43,11 +50,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <NavigationProgress />
+        {children}
+      </body>
     </html>
   );
 }

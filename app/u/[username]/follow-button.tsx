@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Check, Plus } from 'lucide-react';
+import { Check, LoaderCircle, Plus } from 'lucide-react';
 
 export default function ProfileFollowButton({ creatorId }: { creatorId: string }) {
   const [following, setFollowing] = useState(false);
@@ -41,5 +41,5 @@ export default function ProfileFollowButton({ creatorId }: { creatorId: string }
     }
   }
 
-  return <div className="public-profile-follow"><button className="creator-primary" type="button" onClick={() => void toggle()} disabled={busy}>{busy ? 'Please wait…' : following ? <><Check size={15}/> Following</> : <><Plus size={15}/> Follow</>}</button>{message ? <p role="status">{message}</p> : null}</div>;
+  return <div className="public-profile-follow"><button className="creator-primary" type="button" onClick={() => void toggle()} disabled={busy}>{busy ? <><LoaderCircle size={15} className="auth-spinner"/> Please wait…</> : following ? <><Check size={15}/> Following</> : <><Plus size={15}/> Follow</>}</button>{message ? <p role="status">{message}</p> : null}</div>;
 }

@@ -43,9 +43,17 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims() checks the JWT locally (signing keys are cached), so most requests skip the
+  // network round trip to Supabase that getUser() makes. Pages and API routes still call
+  // getUser() themselves wherever they need a fully verified user. Falls back to getUser()
+  // on older supabase-js versions.
+  let user: unknown = null;
+  if (typeof supabase.auth.getClaims === 'function') {
+    const { data } = await supabase.auth.getClaims();
+    user = data?.claims ?? null;
+  } else {
+    user = (await supabase.auth.getUser()).data.user;
+  }
 
   const { pathname, search } = request.nextUrl;
 

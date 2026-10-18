@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .bg { fill: #f1e9f8; }
+    .page { fill: #cdb4ee; stroke: #2d1f3d; }
+    .spine { stroke: #2d1f3d; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #24202b; }
+      .page { fill: #7a56a3; stroke: #efe8f6; }
+      .spine { stroke: #efe8f6; }
+    }
+  </style>
+  <rect class="bg" width="64" height="64" rx="15"/>
+  <path class="page" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"
+    d="M32 22C29 18 24 16.5 13 16.5a2 2 0 0 0-2 2v22a2 2 0 0 0 2 2c9 0 14.5 1 19 5.5 4.500-4.500 10-5.500 19-5.500a2 2 0 0 0 2-2v-22a2 2 0 0 0-2-2C40 16.500 35 18 32 22Z"/>
+  <path class="spine" stroke-width="4.5" stroke-linecap="round" d="M32 22v26"/>
+</svg>

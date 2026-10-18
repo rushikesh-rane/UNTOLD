@@ -14,7 +14,7 @@ import type React from 'react';
 
 import { createClient } from '@/lib/supabase/client';
 
-import { ArrowLeft, BookOpen, Check, ChevronDown, Clock3, Eye, FileText, ImagePlus, Plus, Save, Send, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Check, ChevronDown, Clock3, Eye, FileText, ImagePlus, LoaderCircle, Plus, Save, Send, Sparkles, Trash2 } from 'lucide-react';
 
 
 
@@ -212,6 +212,30 @@ const makeChapter = (n: number): Chapter => ({ id: `${Date.now()}-${n}`, title: 
 
 
 
+const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+// Covers only show as small thumbnails, so shrink big photos in the browser before uploading:
+// faster upload, smaller files, quicker pages. GIFs are left alone so animation survives.
+async function shrinkCover(file: File): Promise<{ blob: Blob; ext: string }> {
+  const original = { blob: file as Blob, ext: (file.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg') };
+  if (file.type === 'image/gif') return original;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 1200 / Math.max(bitmap.width, bitmap.height));
+    if (scale === 1 && file.size < 400 * 1024) { bitmap.close(); return original; }
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) { bitmap.close(); return original; }
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.86));
+    if (blob && blob.type === 'image/webp' && blob.size < file.size) return { blob, ext: 'webp' };
+  } catch { /* Fall back to the original file. */ }
+  return original;
+}
+
 export default function WritePage() {
 
   const [title, setTitle] = useState('');
@@ -231,6 +255,7 @@ export default function WritePage() {
   const [coverUrl, setCoverUrl] = useState('');
 
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   const storyEditorRef = useRef<StoryEditorHandle>(null);
 
@@ -450,6 +475,34 @@ export default function WritePage() {
 
 
 
+  async function uploadCover(file?: File) {
+    if (!file) return;
+    if (!COVER_TYPES.includes(file.type)) { notify('Use a JPG, PNG, WebP or GIF image.'); return; }
+    if (file.size > 5 * 1024 * 1024) { notify('Images must be 5 MB or smaller.'); return; }
+    setUploadingCover(true);
+    try {
+      const supabase = createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) throw new Error('Sign in before adding a cover.');
+      const upload = await shrinkCover(file);
+      const path = `${user.id}/covers/${crypto.randomUUID()}.${upload.ext}`;
+      const { error: uploadError } = await supabase.storage.from('story-images').upload(path, upload.blob, {
+        contentType: upload.blob.type,
+        upsert: false,
+        cacheControl: '31536000', // file names are unique, so browsers can cache covers for a year
+      });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('story-images').getPublicUrl(path);
+      if (!data.publicUrl) throw new Error('Could not create the cover URL.');
+      setCoverUrl(data.publicUrl);
+      notify('Cover uploaded. Save or publish your story to keep it.');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Could not upload the cover. Check the story-images bucket.');
+    } finally {
+      setUploadingCover(false);
+    }
+  }
+
   async function insertChapterImage(file?: File) {
 
     if (!file) return;
@@ -610,7 +663,7 @@ export default function WritePage() {
 
         <div className="creator-two-col"><div><label className="creator-label" htmlFor="creator-category">GENRE</label><div className="creator-select-wrap"><select id="creator-category" className="creator-input" value={category} onChange={(e) => setCategory(e.target.value)}>{['Mystery', 'Real life', 'Thriller', 'Romance', 'Horror', 'Drama', 'Science fiction', 'Fantasy'].map((item) => <option key={item}>{item}</option>)}</select><ChevronDown size={15} /></div></div><div><label className="creator-label" htmlFor="creator-synopsis">SHORT TEASER</label><input id="creator-synopsis" className="creator-input" value={synopsis} onChange={(e) => setSynopsis(e.target.value)} maxLength={220} placeholder="A hint, not the answer…" /></div></div>
 
-        <div className="creator-image-field"><label className="creator-label" htmlFor="creator-cover-url">COVER IMAGE URL (OPTIONAL)</label><input id="creator-cover-url" className="creator-input" type="url" value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} placeholder="https://…" /><span className="creator-help">Use a direct image URL for the story cover.</span></div>
+        <div className="creator-image-field"><span className="creator-label">COVER IMAGE (OPTIONAL)</span><div className="cover-upload">{coverUrl ? <img className="cover-upload-preview" src={coverUrl} alt="Story cover preview" /> : <div className="cover-upload-empty" aria-hidden="true"><ImagePlus size={20} /></div>}<div className="cover-upload-actions"><label className={`creator-image-button ${uploadingCover ? 'is-disabled' : ''}`}><ImagePlus size={15} />{uploadingCover ? 'Uploading…' : coverUrl ? 'Replace cover' : 'Upload cover'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploadingCover} onChange={(event) => { void uploadCover(event.target.files?.[0]); event.currentTarget.value = ''; }} hidden /></label>{coverUrl && !uploadingCover ? <button type="button" className="creator-image-button" onClick={() => setCoverUrl('')}><Trash2 size={14} /> Remove</button> : null}</div></div><span className="creator-help">JPG, PNG, WebP or GIF, up to 5 MB. Large photos are resized automatically.</span></div>
 
         <div className="creator-step-heading creator-chapter-heading"><span>02</span><div><h2>Write the chapters</h2><p>Decide what readers learn now—and what stays hidden.</p></div></div>
 
@@ -646,7 +699,7 @@ export default function WritePage() {
 
           <div className="editor-foot"><span>{chapter.body.length.toLocaleString()} / 12,000 characters</span><span>Tip: end the part with a question, clue, or contradiction.</span></div><div className="reveal-setting"><div className="reveal-setting-icon"><Clock3 size={17} /></div><div className="reveal-setting-copy"><strong>When should this part go live?</strong><span>{revealCaption(chapter)}</span></div><select aria-label="When this part goes live" value={chapter.reveal === 'now' ? 'now' : String(clampDays(chapter.delayDays ?? 1))} onChange={(e) => setChapterTiming(e.target.value)}><option value="now">Available now</option><optgroup label="Post automatically after publishing">{[1, 2, 3, 4, 5, 6, 7].map((day) => <option key={day} value={String(day)}>In {dayLabel(day)}</option>)}</optgroup></select></div>{chapters.length > 1 && <button className="remove-chapter" onClick={() => { const next = chapters.filter((_, index) => index !== activeChapter); setChapters(next); setActiveChapter(Math.max(0, activeChapter - 1)); }}><Trash2 size={14} /> Remove this part</button>}</div>}
 
-        <div className="creator-actions"><button className="creator-secondary" onClick={() => setPreview(true)}><Eye size={16} /> Preview</button><button className="creator-secondary" disabled={busy} onClick={saveDraft}><Save size={16} /> Save draft</button><button className="creator-primary" disabled={busy} onClick={publishStory}><Send size={16} /> {busy ? 'Saving…' : 'Publish story'}</button></div>
+        <div className="creator-actions"><button className="creator-secondary" onClick={() => setPreview(true)}><Eye size={16} /> Preview</button><button className="creator-secondary" disabled={busy} onClick={saveDraft}>{busy ? <LoaderCircle size={16} className="auth-spinner" /> : <Save size={16} />} Save draft</button><button className="creator-primary" disabled={busy} onClick={publishStory}>{busy ? <LoaderCircle size={16} className="auth-spinner" /> : <Send size={16} />} {busy ? 'Saving…' : 'Publish story'}</button></div>
 
         <div className="creator-publish-note"><Check size={16} /><p><strong>Cloud-connected workspace.</strong> Your drafts and chapters are stored in Supabase and tied to your signed-in account. Unrevealed chapters are marked separately and protected by database policies.</p></div>
 
