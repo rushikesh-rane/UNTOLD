@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, Clock3,
@@ -33,12 +33,30 @@ type CloudStory = {
   author?: CloudAuthor | CloudAuthor[] | null;
   profiles?: CloudAuthor | CloudAuthor[] | null;
   chapters?: CloudChapter[] | null;
+  theories?: { count: number }[] | null;
+  predictions?: { count: number }[] | null;
 };
 
 type CloudTheory = {
+  id: string;
+  user_id?: string | null;
   body: string;
+  created_at?: string | null;
   profiles?: CloudAuthor | CloudAuthor[] | null;
 };
+
+type CloudReply = {
+  id: string;
+  user_id?: string | null;
+  theory_id?: string | null;
+  body: string;
+  created_at?: string | null;
+  profile?: CloudAuthor | CloudAuthor[] | null;
+};
+
+type Reply = { id: string; userId?: string; author: string; text: string; createdAt?: string };
+type SeedTheory = { author: string; text: string; votes: number };
+type Theory = SeedTheory & { id: string; userId?: string; createdAt?: string; replies: Reply[] };
 
 type MediaStory = Story & {
   authorId?: string;
@@ -46,11 +64,11 @@ type MediaStory = Story & {
   body: string[];
   lockedChapters?: { title: string; body: string }[];
   images: { src: string; alt: string; caption: string }[];
-  theories: { author: string; text: string; votes: number }[];
+  theories: Theory[];
   audioLabel: string;
 };
 
-const storyDetails: Record<string, Omit<MediaStory, keyof Story>> = {
+const storyDetails: Record<string, Omit<MediaStory, keyof Story | 'theories'> & { theories: SeedTheory[] }> = {
   'blue-tick': {
     body: [
       'At 2:13 AM, a message appeared on my phone: “Are you awake? I need to tell you something.”',
@@ -110,15 +128,37 @@ const storyDetails: Record<string, Omit<MediaStory, keyof Story>> = {
   },
 };
 
-const initialStories: MediaStory[] = seedStories.map((story) => ({
-  ...story,
-  ...storyDetails[story.id],
-}));
+const initialStories: MediaStory[] = seedStories.map((story) => {
+  const details = storyDetails[story.id];
+  return {
+    ...story,
+    ...details,
+    // Give every sample theory a stable id so likes and replies attach to the right comment.
+    theories: (details?.theories ?? []).map((theory) => ({ ...theory, id: `${story.id}:${theory.author}`, replies: [] })),
+  };
+});
 
 const SAVED_KEY = 'untold.saved-stories.v1';
 const THEORIES_KEY = 'untold.reader-theories.v1';
 const VOTES_KEY = 'untold.theory-votes.v1';
+const REPLIES_KEY = 'untold.theory-replies.v1';
 const PUBLISHED_KEY = 'untold.published-stories.v1';
+const isCloudId = (id: string) => /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id);
+function readLocal<T>(key: string, fallback: T): T {
+  try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; } catch { return fallback; }
+}
+function writeLocal(key: string, value: unknown) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Storage can be unavailable (private mode). */ }
+}
+function timeAgo(iso?: string) {
+  if (!iso) return '';
+  const seconds = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 86400 * 30) return `${Math.floor(seconds / 86400)}d ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
 type LocalPublishedStory = { id: string; title: string; category: string; synopsis: string; cover_url?: string | null; coverUrl?: string | null; chapters: { id: string; title: string; body: string; reveal: 'now' | 'later' }[]; author?: string; publishedAt?: string };
 
 function Avatar({ initials, color }: { initials: string; color: string }) {
@@ -132,7 +172,11 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [savedStories, setSavedStories] = useState<string[]>([]);
   const [publishedStories, setPublishedStories] = useState<MediaStory[]>([]);
-  const [theoryVotes, setTheoryVotes] = useState<Record<string, number>>({});
+  const [likedTheories, setLikedTheories] = useState<Record<string, boolean>>({});
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState('');
+  const [replyBusy, setReplyBusy] = useState(false);
+  const likeBusy = useRef<Set<string>>(new Set());
   const [selectedStory, setSelectedStory] = useState<MediaStory | null>(null);
   const [prediction, setPrediction] = useState('');
   const [submittedPredictions, setSubmittedPredictions] = useState<Record<string, string[]>>({});
@@ -169,7 +213,7 @@ export default function HomePage() {
             const rawBody = chapters.flatMap((chapter) => [chapter.title, chapter.body]).filter((text): text is string => Boolean(text));
             const images = rawBody.flatMap((text: string) => Array.from(text.matchAll(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g), (match) => ({ src: match[2], alt: match[1] || 'Story illustration', caption: match[1] || 'A moment from the story' })));
             const body = rawBody.map((text: string) => text.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '').trim()).filter(Boolean);
-            return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images, theories: [], audioLabel: 'Listen to the opening' };
+            return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: 'Continue reading', progress: 50, body, images, theories: [], audioLabel: 'Listen to the opening' };
           });
           setPublishedStories((current) => [...cloudStories, ...current.filter((old) => !cloudStories.some((cloud) => cloud.id === old.id))]);
         }
@@ -182,7 +226,8 @@ export default function HomePage() {
     try {
       setSavedStories((current) => current.length ? current : JSON.parse(localStorage.getItem(SAVED_KEY) || '[]') as string[]);
       setSubmittedPredictions(JSON.parse(localStorage.getItem(THEORIES_KEY) || '{}') as Record<string, string[]>);
-      setTheoryVotes(JSON.parse(localStorage.getItem(VOTES_KEY) || '{}') as Record<string, number>);
+      const savedLikes = JSON.parse(localStorage.getItem(VOTES_KEY) || '{}') as Record<string, number | boolean>;
+      setLikedTheories(Object.fromEntries(Object.entries(savedLikes).filter(([, value]) => Boolean(value)).map(([key]) => [key, true])));
       const published = JSON.parse(localStorage.getItem(PUBLISHED_KEY) || '[]') as LocalPublishedStory[];
       setPublishedStories(published.map((item) => {
         const available = item.chapters.filter((chapter) => chapter.reveal === 'now');
@@ -202,10 +247,11 @@ export default function HomePage() {
   const filteredStories = useMemo(() => allStories.filter((story) => {
     const haystack = `${story.title} ${story.excerpt} ${story.category} ${story.author} ${story.body.join(' ')}`.toLowerCase();
     const matchesSearch = haystack.includes(searchTerm.toLowerCase());
-    const matchesTab = activeTab === 'For you' || (activeTab === 'Trending' ? story.predictions > 150 : activeTab === 'New' ? story.progress < 60 : true);
+    const isTrending = story.predictions > 150 || (isCloudId(story.id) && story.predictions + story.comments > 0);
+    const matchesTab = activeTab === 'For you' || (activeTab === 'Trending' ? isTrending : activeTab === 'New' ? story.progress < 60 : true);
     const matchesSaved = activeNav !== 'Reading list' || savedStories.includes(story.id);
     return matchesSearch && matchesTab && matchesSaved;
-  }), [allStories, activeTab, activeNav, savedStories, searchTerm]);
+  }).sort((a, b) => activeTab === 'Trending' ? (b.predictions + b.comments) - (a.predictions + a.comments) : 0), [allStories, activeTab, activeNav, savedStories, searchTerm]);
 
   function showNotice(message: string) {
     setNotice(message);
@@ -242,26 +288,111 @@ export default function HomePage() {
     showNotice(isSaved ? 'Removed from your reading list.' : 'Saved to your reading list.');
   }
 
+  // Sample stories keep their likes and replies on this device only.
+  function withLocalDiscussion(story: MediaStory): MediaStory {
+    const savedReplies = readLocal<Record<string, Reply[]>>(REPLIES_KEY, {});
+    return {
+      ...story,
+      theories: story.theories.map((theory) => ({
+        ...theory,
+        votes: theory.votes + (likedTheories[theory.id] ? 1 : 0),
+        replies: savedReplies[theory.id] ?? [],
+      })),
+    };
+  }
+
+  // Loads theories, like counts, my likes and replies for a cloud story in one go.
+  async function loadDiscussion(storyId: string) {
+    const id = encodeURIComponent(storyId);
+    try {
+      const [theoriesRes, votesRes, repliesRes] = await Promise.all([
+        fetch(`/api/theories?storyId=${id}`, { cache: 'no-store' }),
+        fetch(`/api/theory-votes?storyId=${id}`, { cache: 'no-store' }),
+        fetch(`/api/replies?kind=theory&storyId=${id}`, { cache: 'no-store' }),
+      ]);
+      const theoriesBody = (await theoriesRes.json().catch(() => ({}))) as { theories?: CloudTheory[] };
+      if (!theoriesRes.ok || !Array.isArray(theoriesBody.theories)) return;
+      const votesBody = (votesRes.ok ? await votesRes.json().catch(() => ({})) : {}) as { counts?: Record<string, number>; myVotes?: string[] };
+      const repliesBody = (repliesRes.ok ? await repliesRes.json().catch(() => ({})) : {}) as { replies?: CloudReply[] };
+      const counts = votesBody.counts ?? {};
+      const mine = new Set(votesBody.myVotes ?? []);
+      const repliesByTheory: Record<string, Reply[]> = {};
+      for (const item of repliesBody.replies ?? []) {
+        if (!item.theory_id) continue;
+        const profile = Array.isArray(item.profile) ? item.profile[0] : item.profile;
+        (repliesByTheory[item.theory_id] ??= []).push({ id: item.id, userId: item.user_id || undefined, author: profile?.username || profile?.display_name || 'reader', text: item.body, createdAt: item.created_at || undefined });
+      }
+      const theories: Theory[] = theoriesBody.theories.map((item) => {
+        const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+        return { id: item.id, userId: item.user_id || undefined, author: profile?.username || profile?.display_name || 'reader', text: item.body, createdAt: item.created_at || undefined, votes: counts[item.id] ?? 0, replies: repliesByTheory[item.id] ?? [] };
+      });
+      setLikedTheories((current) => ({ ...current, ...Object.fromEntries(theories.map((theory) => [theory.id, mine.has(theory.id)])) }));
+      setSelectedStory((current) => current?.id === storyId ? { ...current, theories } : current);
+    } catch { /* Reader can still use the story if the discussion fails to load. */ }
+  }
+
   async function openStory(story: MediaStory) {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     setIsSpeaking(false);
     setPrediction('');
-    setSelectedStory(story);
+    setReplyingTo(null);
+    setReplyDraft('');
+    setSelectedStory(isCloudId(story.id) ? story : withLocalDiscussion(story));
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(story.id)) {
+    if (isCloudId(story.id)) await loadDiscussion(story.id);
+  }
+
+  // One like per person per theory: clicking again removes it. Cloud likes are enforced by the database too.
+  async function toggleLike(theory: Theory) {
+    if (!selectedStory || likeBusy.current.has(theory.id)) return;
+    const storyId = selectedStory.id;
+    const cloud = isCloudId(theory.id);
+    if (cloud && !currentUserId) { showNotice('Sign in to like theories.'); return; }
+    const wasLiked = Boolean(likedTheories[theory.id]);
+    const apply = (liked: boolean) => {
+      setLikedTheories((current) => ({ ...current, [theory.id]: liked }));
+      setSelectedStory((current) => current?.id === storyId ? { ...current, theories: current.theories.map((item) => item.id === theory.id ? { ...item, votes: Math.max(0, item.votes + (liked ? 1 : -1)) } : item) } : current);
+    };
+    apply(!wasLiked);
+    if (!cloud) { writeLocal(VOTES_KEY, Object.fromEntries(Object.entries({ ...likedTheories, [theory.id]: !wasLiked }).filter(([key, value]) => value && !isCloudId(key)))); return; }
+    likeBusy.current.add(theory.id);
+    try {
+      const response = await fetch(wasLiked ? `/api/theory-votes?theoryId=${encodeURIComponent(theory.id)}` : '/api/theory-votes', wasLiked ? { method: 'DELETE' } : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theoryId: theory.id }) });
+      if (!response.ok) { const result = await response.json().catch(() => ({})); apply(wasLiked); showNotice(response.status === 401 ? 'Sign in to like theories.' : result.error || 'Could not update your like.'); }
+    } catch { apply(wasLiked); showNotice('Could not update your like. Please try again.'); }
+    finally { likeBusy.current.delete(theory.id); }
+  }
+
+  // Opens the reply box directly under the theory being answered (optionally pre-mentioning a person in that thread).
+  function openReply(theory: Theory, mention?: string) {
+    if (replyingTo === theory.id && !mention) { setReplyingTo(null); setReplyDraft(''); return; }
+    if (isCloudId(theory.id) && !currentUserId) { showNotice('Sign in to reply.'); return; }
+    setReplyingTo(theory.id);
+    setReplyDraft(mention ? `@${mention} ` : '');
+  }
+
+  async function submitReply(theory: Theory) {
+    const text = replyDraft.trim();
+    if (!selectedStory || !text || replyBusy) return;
+    const storyId = selectedStory.id;
+    if (isCloudId(theory.id)) {
+      setReplyBusy(true);
       try {
-        const response = await fetch(`/api/theories?storyId=${encodeURIComponent(story.id)}`, { cache: 'no-store' });
-        const result = await response.json();
-        if (response.ok && Array.isArray(result.theories)) {
-          const theoryPayload = result as { theories?: CloudTheory[] };
-          const theories = (theoryPayload.theories ?? []).map((item) => {
-            const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
-            return { author: profile?.username || profile?.display_name || 'reader', text: item.body, votes: 0 };
-          });
-          setSelectedStory((current) => current?.id === story.id ? { ...current, theories } : current);
-        }
-      } catch { /* Reader can still use the story if theories fail to load. */ }
+        const response = await fetch('/api/replies', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'theory', parentId: theory.id, storyId, body: text }) });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) { showNotice(response.status === 401 ? 'Sign in to reply.' : result.error || 'Could not post your reply.'); return; }
+        await loadDiscussion(storyId);
+      } catch { showNotice('Could not post your reply. Please try again.'); return; }
+      finally { setReplyBusy(false); }
+    } else {
+      const reply: Reply = { id: `local-${Date.now()}`, author: 'you', text, createdAt: new Date().toISOString() };
+      const saved = readLocal<Record<string, Reply[]>>(REPLIES_KEY, {});
+      writeLocal(REPLIES_KEY, { ...saved, [theory.id]: [...(saved[theory.id] ?? []), reply] });
+      setSelectedStory((current) => current?.id === storyId ? { ...current, theories: current.theories.map((item) => item.id === theory.id ? { ...item, replies: [...item.replies, reply] } : item) } : current);
     }
+    setReplyDraft('');
+    setReplyingTo(null);
+    showNotice('Reply posted.');
   }
 
   function toggleNarration() {
@@ -286,16 +417,20 @@ export default function HomePage() {
 
   async function submitPrediction() {
     if (!selectedStory || prediction.trim().length < 8) return;
-    if (/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(selectedStory.id)) {
+    if (isCloudId(selectedStory.id)) {
       try {
         const response = await fetch('/api/theories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId: selectedStory.id, body: prediction.trim() }) });
         const result = await response.json();
         if (!response.ok) { showNotice(result.error || 'Sign in to submit a theory.'); return; }
       } catch { showNotice('Could not submit your theory.'); return; }
+      setPrediction('');
+      await loadDiscussion(selectedStory.id);
+      showNotice('Your theory was shared with UNTOLD readers.');
+      return;
     }
     setSubmittedPredictions((current) => { const next = { ...current, [selectedStory.id]: [...(current[selectedStory.id] ?? []), prediction.trim()] }; localStorage.setItem(THEORIES_KEY, JSON.stringify(next)); return next; });
     setPrediction('');
-    showNotice(/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(selectedStory.id) ? 'Your theory was shared with UNTOLD readers.' : 'Theory added to this sample story on this device.');
+    showNotice('Theory added to this sample story on this device.');
   }
 
   function publishDraft() {
@@ -308,6 +443,8 @@ export default function HomePage() {
     setNewTitle('');
     setNewOpening('');
   }
+
+  const localOwnTheories = selectedStory && !isCloudId(selectedStory.id) ? submittedPredictions[selectedStory.id] ?? [] : [];
 
   return (
     <main className="app-shell">
@@ -537,7 +674,30 @@ export default function HomePage() {
             <div className="reader-body">{selectedStory.body.slice(0, 2).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
             <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} /><span className="gallery-caption">{image.caption}</span><span className="gallery-expand"><Plus size={16} /></span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
             {(selectedStory.lockedChapters?.length || selectedStory.body.length > 2 || selectedStory.progress < 100) ? <section className="locked-chapter-list"><div className="reveal-card"><div className="reveal-card-icon"><Clock3 size={18} /></div><div><span className="eyebrow muted-eyebrow">THE REST IS STILL HIDDEN</span><h3>The story isn&apos;t over.</h3><p>Titles are visible. The words stay hidden until the creator reveals them.</p></div><span className="reveal-status">REVEAL PENDING</span></div>{(selectedStory.lockedChapters?.length ? selectedStory.lockedChapters : selectedStory.body.slice(2).map((body, index) => ({ title: index === 0 ? 'The next clue' : `Part II · ${index + 1}`, body }))).map((chapter, index) => <section className="reader-locked-part" key={`${chapter.title}-${index}`}><p className="eyebrow muted-eyebrow">PART {String(index + 2).padStart(2, '0')} · REVEAL LATER</p><h3>{chapter.title}</h3><div className="reader-locked-copy" aria-label="Chapter content hidden">{chapter.body || 'The next part is waiting to be revealed.'}</div><div className="reader-locked-message"><Clock3 size={16} /><strong>This part is still hidden</strong><span>Come back when the creator reveals it.</span></div></section>)}</section> : null}
-            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length + (submittedPredictions[selectedStory.id]?.length ?? 0)} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{(submittedPredictions[selectedStory.id] ?? []).map((text, index) => <article className="theory-card own-theory" key={`${text}-${index}`}><div className="theory-author"><span className="theory-avatar">Y</span><strong>you</strong><span>just now</span><span className="own-label">YOUR THEORY</span></div><p>{text}</p></article>)}{selectedStory.theories.map((theory) => <article className="theory-card" key={theory.author}><div className="theory-author"><span className="theory-avatar">{theory.author.slice(0, 1).toUpperCase()}</span><strong>{theory.author}</strong><span>reader theory</span></div><p>{theory.text}</p><div className="theory-votes"><button onClick={() => { const key = `${selectedStory.id}:${theory.author}`; setTheoryVotes((current) => { const next = { ...current, [key]: (current[key] ?? 0) + 1 }; localStorage.setItem(VOTES_KEY, JSON.stringify(next)); return next; }); }}><Heart size={14} /> {theory.votes + (theoryVotes[`${selectedStory.id}:${theory.author}`] ?? 0)}</button><button onClick={() => { setPrediction(`@${theory.author} — `); document.getElementById('theory-input')?.focus(); }}><MessageCircle size={14} /> Reply</button></div></article>)}</div></section>
+            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length + localOwnTheories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{localOwnTheories.map((text, index) => <article className="theory-card own-theory" key={`${text}-${index}`}><div className="theory-author"><span className="theory-avatar">Y</span><strong>you</strong><span>just now</span><span className="own-label">YOUR THEORY</span></div><p>{text}</p></article>)}{selectedStory.theories.map((theory) => {
+              const liked = Boolean(likedTheories[theory.id]);
+              const isReplying = replyingTo === theory.id;
+              return <article className="theory-card" key={theory.id}>
+                <div className="theory-author"><span className="theory-avatar">{theory.author.slice(0, 1).toUpperCase()}</span>{theory.userId ? <Link href={`/u/${theory.userId}`} className="theory-profile-link"><strong>{theory.author}</strong></Link> : <strong>{theory.author}</strong>}<span>{theory.createdAt ? timeAgo(theory.createdAt) : 'reader theory'}</span></div>
+                <p>{theory.text}</p>
+                <div className="theory-votes">
+                  <button type="button" className={`like-button${liked ? ' is-liked' : ''}`} aria-pressed={liked} aria-label={liked ? `Unlike this theory (${theory.votes} likes)` : `Like this theory (${theory.votes} likes)`} onClick={() => void toggleLike(theory)}><Heart size={14} fill={liked ? 'currentColor' : 'none'} /> {theory.votes}</button>
+                  <button type="button" className={isReplying ? 'is-active' : ''} aria-expanded={isReplying} onClick={() => openReply(theory)}><MessageCircle size={14} /> Reply{theory.replies.length ? ` · ${theory.replies.length}` : ''}</button>
+                </div>
+                {(theory.replies.length > 0 || isReplying) && <div className="theory-replies">
+                  {theory.replies.map((reply) => <div className="reply-card" key={reply.id}>
+                    <div className="theory-author"><span className="theory-avatar reply-avatar">{reply.author.slice(0, 1).toUpperCase()}</span>{reply.userId ? <Link href={`/u/${reply.userId}`} className="theory-profile-link"><strong>{reply.author}</strong></Link> : <strong>{reply.author}</strong>}<span>{timeAgo(reply.createdAt)}</span></div>
+                    <p>{reply.text}</p>
+                    <div className="theory-votes"><button type="button" onClick={() => openReply(theory, reply.author)}><MessageCircle size={13} /> Reply</button></div>
+                  </div>)}
+                  {isReplying && <form className="reply-form" onSubmit={(event) => { event.preventDefault(); void submitReply(theory); }}>
+                    <label htmlFor={`reply-${theory.id}`}>REPLYING TO @{theory.author}</label>
+                    <textarea id={`reply-${theory.id}`} autoFocus value={replyDraft} onChange={(event) => setReplyDraft(event.target.value)} placeholder={`Reply to ${theory.author}…`} maxLength={1000} rows={2} />
+                    <div className="reply-form-actions"><button type="button" className="reply-cancel" onClick={() => { setReplyingTo(null); setReplyDraft(''); }}>Cancel</button><button type="submit" className="reply-submit" disabled={!replyDraft.trim() || replyBusy}>{replyBusy ? 'Posting…' : <>Reply <Send size={13} /></>}</button></div>
+                  </form>}
+                </div>}
+              </article>;
+            })}</div></section>
           </article>
         </div>
       )}

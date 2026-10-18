@@ -6278,3 +6278,121 @@ select:focus {
     min-height: 44px;
   }
 }
+
+/* ---------- Theory likes + threaded replies ---------- */
+.theory-votes button {
+  cursor: pointer;
+  transition: color .2s ease;
+}
+
+.theory-votes .like-button.is-liked {
+  color: #c8405a;
+  font-weight: 600;
+}
+
+.theory-votes .like-button.is-liked svg {
+  animation: like-pop .32s ease;
+}
+
+.theory-votes button.is-active {
+  color: #795b91;
+}
+
+@keyframes like-pop {
+  0% {
+    transform: scale(.7);
+  }
+
+  60% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.theory-card .theory-replies {
+  display: grid;
+  gap: 2px;
+  margin: 12px 0 0 13px;
+  padding-left: 16px;
+  border-left: 2px solid var(--lavender);
+}
+
+.theory-card .reply-card {
+  padding: 10px 0 6px;
+}
+
+.theory-card .reply-card p {
+  font-size: 14.5px;
+  line-height: 1.55;
+  margin: 8px 0 6px;
+}
+
+.reply-avatar {
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+}
+
+.reply-form {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0 2px;
+}
+
+.reply-form label {
+  color: var(--purple);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .5px;
+}
+
+.reply-form textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.reply-form textarea:focus {
+  outline: 2px solid rgba(121, 92, 145, .35);
+  outline-offset: 1px;
+}
+
+.reply-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.reply-form-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  padding: 7px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.reply-form-actions .reply-submit {
+  border-color: var(--purple);
+  background: var(--purple);
+  color: #fff;
+}
+
+.reply-form-actions .reply-submit:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}

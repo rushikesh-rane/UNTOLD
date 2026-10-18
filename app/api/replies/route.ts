@@ -5,14 +5,17 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const kind = url.searchParams.get('kind');
   const parentId = url.searchParams.get('parentId');
-  if ((kind !== 'theory' && kind !== 'prediction') || !parentId) {
-    return NextResponse.json({ error: 'kind (theory or prediction) and parentId are required.' }, { status: 400 });
+  const storyId = url.searchParams.get('storyId');
+  // Either one parent (parentId) or every reply for a story's theories/predictions (storyId).
+  if ((kind !== 'theory' && kind !== 'prediction') || (!parentId && !storyId)) {
+    return NextResponse.json({ error: 'kind (theory or prediction) and parentId or storyId are required.' }, { status: 400 });
   }
   const supabase = await createClient();
   const column = kind === 'theory' ? 'theory_id' : 'prediction_id';
-  const { data, error } = await supabase.from('replies')
-    .select(`id,user_id,story_id,theory_id,prediction_id,body,created_at,profile:profiles!replies_user_id_fkey(id,username,display_name,avatar_url)`)
-    .eq(column, parentId).order('created_at', { ascending: true });
+  let query = supabase.from('replies')
+    .select(`id,user_id,story_id,theory_id,prediction_id,body,created_at,profile:profiles!replies_user_id_fkey(id,username,display_name,avatar_url)`);
+  query = parentId ? query.eq(column, parentId) : query.eq('story_id', storyId as string).not(column, 'is', null);
+  const { data, error } = await query.order('created_at', { ascending: true });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ replies: data ?? [] });
 }

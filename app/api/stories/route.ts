@@ -23,7 +23,23 @@ export async function GET() {
         .sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
     }));
 
-    return NextResponse.json({ stories: visibleStories }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
+    // Discussion counts are a nice-to-have: fetch them separately so a failure here can never hide stories.
+    const theoryCounts: Record<string, number> = {};
+    const predictionCounts: Record<string, number> = {};
+    try {
+      const ids = visibleStories.map((story) => story.id);
+      if (ids.length) {
+        const [theoryRows, predictionRows] = await Promise.all([
+          supabase.from('theories').select('story_id').in('story_id', ids),
+          supabase.from('predictions').select('story_id').in('story_id', ids),
+        ]);
+        for (const row of (theoryRows.data ?? []) as { story_id: string }[]) theoryCounts[row.story_id] = (theoryCounts[row.story_id] ?? 0) + 1;
+        for (const row of (predictionRows.data ?? []) as { story_id: string }[]) predictionCounts[row.story_id] = (predictionCounts[row.story_id] ?? 0) + 1;
+      }
+    } catch { /* Counts stay at zero. */ }
+    const storiesWithCounts = visibleStories.map((story) => ({ ...story, theories: [{ count: theoryCounts[story.id] ?? 0 }], predictions: [{ count: predictionCounts[story.id] ?? 0 }] }));
+
+    return NextResponse.json({ stories: storiesWithCounts }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch {
     return NextResponse.json({ error: 'Unable to load published stories.', stories: [] }, { status: 500 });
   }
