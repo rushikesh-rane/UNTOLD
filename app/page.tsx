@@ -7,7 +7,7 @@ import {
   Headphones, Heart, Image as ImageIcon, MessageCircle, Pause,
   Plus, Search, Send, Sparkles, Volume2, X, Home, Compass, Flame, Users, BookmarkCheck, CircleHelp, ChevronRight, UserRound,
 } from 'lucide-react';
-import { stories as seedStories, type Story } from '@/lib/stories';
+import { type Story } from '@/lib/stories';
 import { createClient } from '@/lib/supabase/client';
 
 type CloudAuthor = {
@@ -55,8 +55,7 @@ type CloudReply = {
 };
 
 type Reply = { id: string; userId?: string; author: string; text: string; createdAt?: string };
-type SeedTheory = { author: string; text: string; votes: number };
-type Theory = SeedTheory & { id: string; userId?: string; createdAt?: string; replies: Reply[] };
+type Theory = { id: string; userId?: string; author: string; text: string; votes: number; createdAt?: string; replies: Reply[] };
 
 type MediaStory = Story & {
   authorId?: string;
@@ -68,88 +67,8 @@ type MediaStory = Story & {
   audioLabel: string;
 };
 
-const storyDetails: Record<string, Omit<MediaStory, keyof Story | 'theories'> & { theories: SeedTheory[] }> = {
-  'blue-tick': {
-    body: [
-      'At 2:13 AM, a message appeared on my phone: “Are you awake? I need to tell you something.”',
-      'I replied almost immediately. The typing bubble appeared, disappeared, then appeared again. Three minutes later, the message was gone. By morning, he said he had been asleep all night.',
-      'I wanted to believe him. Then I checked the photo he had posted the previous evening. In the reflection of a window, there was a second phone on the table — one I had never seen before.',
-      'I zoomed in. The lock screen showed a notification from someone saved in his contacts as “Do not answer.” I know that sounds impossible. I know what I saw. And I still haven’t told him I found it.',
-    ],
-    images: [
-      { src: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=85', alt: 'Phone glowing in a dark room', caption: '2:13 AM · The deleted message' },
-      { src: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=85', alt: 'Laptop and phone on a desk', caption: 'The photo that changed everything' },
-      { src: 'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=85', alt: 'Dark night sky over a quiet landscape', caption: 'The night it happened' },
-    ],
-    theories: [
-      { author: 'noahafterdark', text: '“Do not answer” sounds like a contact name someone uses to hide the real identity. Maybe it is a second account?', votes: 128 },
-      { author: 'mila.jpg', text: 'The reflection might be from an old photo. I need to know when the picture was taken.', votes: 94 },
-      { author: 'quietstorm', text: 'The deleted message matters more than the phone. Someone else was using his account.', votes: 61 },
-    ],
-    audioLabel: 'Listen to the opening',
-  },
-  'room-09': {
-    body: [
-      'The hotel had eight floors. I checked the directory twice before getting into the elevator. Eight floors, a basement, and a rooftop restaurant. Nothing else.',
-      'At 11:48 PM, the elevator stopped between seven and eight. The lights blinked. Then a button I had never noticed before lit up: 9.',
-      'The doors opened onto a corridor with green carpet and framed photographs of guests. Every photograph showed the same woman, standing in a different year. In the final frame, she was holding my room key.',
-      'At the end of the corridor was Room 09. I heard someone inside whisper my name. I had never told anyone at the hotel who I was.',
-    ],
-    images: [
-      { src: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=85', alt: 'Quiet hotel corridor at night', caption: 'The floor that should not exist' },
-      { src: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1200&q=85', alt: 'Moody geometric architecture', caption: 'A building with a hidden level' },
-      { src: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1200&q=85', alt: 'Dark ocean under a grey sky', caption: 'The sound behind the door' },
-    ],
-    theories: [
-      { author: 'paperghost', text: 'The woman in the photographs is the narrator from a different timeline.', votes: 142 },
-      { author: 'ash_reads', text: 'Room 09 is not a physical room. It could be a memory or a loop.', votes: 86 },
-      { author: 'lune', text: 'The hotel staff know. Look at how the story keeps mentioning the directory.', votes: 39 },
-    ],
-    audioLabel: 'Listen to the opening',
-  },
-  birthday: {
-    body: [
-      'By ten in the evening, my phone was still silent. Not one birthday message from the people who promised they would never forget.',
-      'I ordered food, turned off the lights, and decided I was done expecting anything from anyone. Then someone knocked.',
-      'A woman I had never seen before stood outside holding a photograph of me at six years old. Behind me in the picture was a boy I barely remembered — my childhood neighbour, who moved away after the accident.',
-      'She said, “He asked me to find you on this day.” Then she handed me an envelope with my name on it, written in handwriting I had not seen in fifteen years.',
-    ],
-    images: [
-      { src: 'https://images.unsplash.com/photo-1464349153735-7db50ed83c84?auto=format&fit=crop&w=1200&q=85', alt: 'Birthday cake with candles', caption: 'A birthday nobody remembered' },
-      { src: 'https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=1200&q=85', alt: 'Friends gathered together', caption: 'A memory from another year' },
-      { src: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=85', alt: 'Portrait in soft evening light', caption: 'The person in the photograph' },
-    ],
-    theories: [
-      { author: 'sundayletters', text: 'The boy is the reason the narrator is still here. The letter is probably an apology.', votes: 77 },
-      { author: 'devonwrites', text: 'The stranger might be his sister or someone from the old neighbourhood.', votes: 53 },
-      { author: 'littleorbit', text: 'What if everyone did remember, but they were planning a surprise?', votes: 31 },
-    ],
-    audioLabel: 'Listen to the opening',
-  },
-};
-
-const initialStories: MediaStory[] = seedStories.map((story) => {
-  const details = storyDetails[story.id];
-  return {
-    ...story,
-    ...details,
-    // Give every sample theory a stable id so likes and replies attach to the right comment.
-    theories: (details?.theories ?? []).map((theory) => ({ ...theory, id: `${story.id}:${theory.author}`, replies: [] })),
-  };
-});
-
-const SAVED_KEY = 'untold.saved-stories.v1';
-const THEORIES_KEY = 'untold.reader-theories.v1';
-const VOTES_KEY = 'untold.theory-votes.v1';
-const REPLIES_KEY = 'untold.theory-replies.v1';
-const PUBLISHED_KEY = 'untold.published-stories.v1';
-const isCloudId = (id: string) => /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id);
-function readLocal<T>(key: string, fallback: T): T {
-  try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; } catch { return fallback; }
-}
-function writeLocal(key: string, value: unknown) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Storage can be unavailable (private mode). */ }
-}
+// Old prototype data that earlier builds kept in the browser. It is cleared so it can never show up as ghost stories, saves or likes.
+const LEGACY_KEYS = ['untold.saved-stories.v1', 'untold.reader-theories.v1', 'untold.theory-votes.v1', 'untold.theory-replies.v1', 'untold.published-stories.v1'];
 function timeAgo(iso?: string) {
   if (!iso) return '';
   const seconds = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
@@ -159,7 +78,6 @@ function timeAgo(iso?: string) {
   if (seconds < 86400 * 30) return `${Math.floor(seconds / 86400)}d ago`;
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
-type LocalPublishedStory = { id: string; title: string; category: string; synopsis: string; cover_url?: string | null; coverUrl?: string | null; chapters: { id: string; title: string; body: string; reveal: 'now' | 'later' }[]; author?: string; publishedAt?: string };
 
 function Avatar({ initials, color }: { initials: string; color: string }) {
   return <span className={`avatar avatar-${color}`}>{initials}</span>;
@@ -179,7 +97,7 @@ export default function HomePage() {
   const likeBusy = useRef<Set<string>>(new Set());
   const [selectedStory, setSelectedStory] = useState<MediaStory | null>(null);
   const [prediction, setPrediction] = useState('');
-  const [submittedPredictions, setSubmittedPredictions] = useState<Record<string, string[]>>({});
+  const [storiesLoaded, setStoriesLoaded] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newOpening, setNewOpening] = useState('');
@@ -217,25 +135,16 @@ export default function HomePage() {
           });
           setPublishedStories((current) => [...cloudStories, ...current.filter((old) => !cloudStories.some((cloud) => cloud.id === old.id))]);
         }
-      } catch { /* Keep the sample discovery experience available if cloud loading fails. */ }
+      } catch { /* Stories stay empty if loading fails; the next refresh retries. */ }
+      finally { if (alive) setStoriesLoaded(true); }
     }
     loadCloudData();
     const refreshPublishedStories = () => { if (document.visibilityState === 'visible') void loadCloudData(); };
     window.addEventListener('focus', refreshPublishedStories);
     document.addEventListener('visibilitychange', refreshPublishedStories);
     try {
-      setSavedStories((current) => current.length ? current : JSON.parse(localStorage.getItem(SAVED_KEY) || '[]') as string[]);
-      setSubmittedPredictions(JSON.parse(localStorage.getItem(THEORIES_KEY) || '{}') as Record<string, string[]>);
-      const savedLikes = JSON.parse(localStorage.getItem(VOTES_KEY) || '{}') as Record<string, number | boolean>;
-      setLikedTheories(Object.fromEntries(Object.entries(savedLikes).filter(([, value]) => Boolean(value)).map(([key]) => [key, true])));
-      const published = JSON.parse(localStorage.getItem(PUBLISHED_KEY) || '[]') as LocalPublishedStory[];
-      setPublishedStories(published.map((item) => {
-        const available = item.chapters.filter((chapter) => chapter.reveal === 'now');
-        const locked = item.chapters.filter((chapter) => chapter.reveal === 'later');
-        const category = /real life/i.test(item.category) ? 'REAL LIFE' as const : 'FICTION' as const;
-        return { id: item.id, coverUrl: item.coverUrl || item.cover_url || undefined, category, title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: item.author || 'You', handle: '@you', initials: 'YO', color: 'violet', readTime: `${Math.max(1, Math.ceil(available.reduce((n, c) => n + c.body.length, 0) / 900))} min read`, predictions: 0, comments: 0, reveal: locked.length ? 'More to come' : 'Complete', progress: locked.length ? 50 : 100, body: available.flatMap((chapter) => [chapter.title, chapter.body]).filter(Boolean), images: [], theories: [], audioLabel: 'Listen to the opening', lockedChapters: locked.map(({ title, body }) => ({ title, body })) };
-      }));
-    } catch { /* Ignore malformed local prototype data and keep the sample stories available. */ }
+      LEGACY_KEYS.forEach((key) => localStorage.removeItem(key));
+    } catch { /* Storage can be unavailable (private mode). */ }
     return () => { alive = false; window.removeEventListener('focus', refreshPublishedStories); document.removeEventListener('visibilitychange', refreshPublishedStories); };
   }, []);
 
@@ -243,11 +152,11 @@ export default function HomePage() {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
   }, []);
 
-  const allStories = useMemo(() => [...publishedStories, ...initialStories], [publishedStories]);
+  const allStories = useMemo(() => publishedStories, [publishedStories]);
   const filteredStories = useMemo(() => allStories.filter((story) => {
     const haystack = `${story.title} ${story.excerpt} ${story.category} ${story.author} ${story.body.join(' ')}`.toLowerCase();
     const matchesSearch = haystack.includes(searchTerm.toLowerCase());
-    const isTrending = story.predictions > 150 || (isCloudId(story.id) && story.predictions + story.comments > 0);
+    const isTrending = story.predictions + story.comments > 0;
     const matchesTab = activeTab === 'For you' || (activeTab === 'Trending' ? isTrending : activeTab === 'New' ? story.progress < 60 : true);
     const matchesSaved = activeNav !== 'Reading list' || savedStories.includes(story.id);
     return matchesSearch && matchesTab && matchesSaved;
@@ -260,7 +169,7 @@ export default function HomePage() {
 
   async function toggleFollow(story: MediaStory) {
     const creatorId = story.authorId;
-    if (!creatorId) { showNotice('This sample story has no real author account to follow.'); return; }
+    if (!creatorId) { showNotice('This story has no author account to follow.'); return; }
     if (followBusy) return;
     const isFollowing = followedIds.includes(creatorId);
     const restore = () => setFollowedIds((current) => isFollowing ? (current.includes(creatorId) ? current : [...current, creatorId]) : current.filter((id) => id !== creatorId));
@@ -276,29 +185,12 @@ export default function HomePage() {
 
   async function toggleSave(id: string) {
     const isSaved = savedStories.includes(id);
-    if (/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id)) {
-      try {
-        const response = await fetch(isSaved ? `/api/bookmarks?storyId=${encodeURIComponent(id)}` : '/api/bookmarks', isSaved ? { method: 'DELETE' } : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId: id }) });
-        if (!response.ok) { const result = await response.json().catch(() => ({})); showNotice(result.error || 'Sign in to save stories.'); return; }
-      } catch { showNotice('Could not update your reading list.'); return; }
-    } else {
-      try { const supabase = createClient(); const { data: { user } } = await supabase.auth.getUser(); if (user) { showNotice('Sample stories cannot be cloud-bookmarked yet.'); return; } } catch { /* Local sample fallback. */ }
-    }
-    setSavedStories((current) => { const next = isSaved ? current.filter((item) => item !== id) : [...current, id]; localStorage.setItem(SAVED_KEY, JSON.stringify(next)); return next; });
+    try {
+      const response = await fetch(isSaved ? `/api/bookmarks?storyId=${encodeURIComponent(id)}` : '/api/bookmarks', isSaved ? { method: 'DELETE' } : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId: id }) });
+      if (!response.ok) { const result = await response.json().catch(() => ({})); showNotice(result.error || 'Sign in to save stories.'); return; }
+    } catch { showNotice('Could not update your reading list.'); return; }
+    setSavedStories((current) => isSaved ? current.filter((item) => item !== id) : [...current, id]);
     showNotice(isSaved ? 'Removed from your reading list.' : 'Saved to your reading list.');
-  }
-
-  // Sample stories keep their likes and replies on this device only.
-  function withLocalDiscussion(story: MediaStory): MediaStory {
-    const savedReplies = readLocal<Record<string, Reply[]>>(REPLIES_KEY, {});
-    return {
-      ...story,
-      theories: story.theories.map((theory) => ({
-        ...theory,
-        votes: theory.votes + (likedTheories[theory.id] ? 1 : 0),
-        replies: savedReplies[theory.id] ?? [],
-      })),
-    };
   }
 
   // Loads theories, like counts, my likes and replies for a cloud story in one go.
@@ -337,24 +229,22 @@ export default function HomePage() {
     setPrediction('');
     setReplyingTo(null);
     setReplyDraft('');
-    setSelectedStory(isCloudId(story.id) ? story : withLocalDiscussion(story));
+    setSelectedStory(story);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (isCloudId(story.id)) await loadDiscussion(story.id);
+    await loadDiscussion(story.id);
   }
 
   // One like per person per theory: clicking again removes it. Cloud likes are enforced by the database too.
   async function toggleLike(theory: Theory) {
     if (!selectedStory || likeBusy.current.has(theory.id)) return;
     const storyId = selectedStory.id;
-    const cloud = isCloudId(theory.id);
-    if (cloud && !currentUserId) { showNotice('Sign in to like theories.'); return; }
+    if (!currentUserId) { showNotice('Sign in to like theories.'); return; }
     const wasLiked = Boolean(likedTheories[theory.id]);
     const apply = (liked: boolean) => {
       setLikedTheories((current) => ({ ...current, [theory.id]: liked }));
       setSelectedStory((current) => current?.id === storyId ? { ...current, theories: current.theories.map((item) => item.id === theory.id ? { ...item, votes: Math.max(0, item.votes + (liked ? 1 : -1)) } : item) } : current);
     };
     apply(!wasLiked);
-    if (!cloud) { writeLocal(VOTES_KEY, Object.fromEntries(Object.entries({ ...likedTheories, [theory.id]: !wasLiked }).filter(([key, value]) => value && !isCloudId(key)))); return; }
     likeBusy.current.add(theory.id);
     try {
       const response = await fetch(wasLiked ? `/api/theory-votes?theoryId=${encodeURIComponent(theory.id)}` : '/api/theory-votes', wasLiked ? { method: 'DELETE' } : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theoryId: theory.id }) });
@@ -366,7 +256,7 @@ export default function HomePage() {
   // Opens the reply box directly under the theory being answered (optionally pre-mentioning a person in that thread).
   function openReply(theory: Theory, mention?: string) {
     if (replyingTo === theory.id && !mention) { setReplyingTo(null); setReplyDraft(''); return; }
-    if (isCloudId(theory.id) && !currentUserId) { showNotice('Sign in to reply.'); return; }
+    if (!currentUserId) { showNotice('Sign in to reply.'); return; }
     setReplyingTo(theory.id);
     setReplyDraft(mention ? `@${mention} ` : '');
   }
@@ -375,21 +265,14 @@ export default function HomePage() {
     const text = replyDraft.trim();
     if (!selectedStory || !text || replyBusy) return;
     const storyId = selectedStory.id;
-    if (isCloudId(theory.id)) {
-      setReplyBusy(true);
-      try {
-        const response = await fetch('/api/replies', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'theory', parentId: theory.id, storyId, body: text }) });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) { showNotice(response.status === 401 ? 'Sign in to reply.' : result.error || 'Could not post your reply.'); return; }
-        await loadDiscussion(storyId);
-      } catch { showNotice('Could not post your reply. Please try again.'); return; }
-      finally { setReplyBusy(false); }
-    } else {
-      const reply: Reply = { id: `local-${Date.now()}`, author: 'you', text, createdAt: new Date().toISOString() };
-      const saved = readLocal<Record<string, Reply[]>>(REPLIES_KEY, {});
-      writeLocal(REPLIES_KEY, { ...saved, [theory.id]: [...(saved[theory.id] ?? []), reply] });
-      setSelectedStory((current) => current?.id === storyId ? { ...current, theories: current.theories.map((item) => item.id === theory.id ? { ...item, replies: [...item.replies, reply] } : item) } : current);
-    }
+    setReplyBusy(true);
+    try {
+      const response = await fetch('/api/replies', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'theory', parentId: theory.id, storyId, body: text }) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) { showNotice(response.status === 401 ? 'Sign in to reply.' : result.error || 'Could not post your reply.'); return; }
+      await loadDiscussion(storyId);
+    } catch { showNotice('Could not post your reply. Please try again.'); return; }
+    finally { setReplyBusy(false); }
     setReplyDraft('');
     setReplyingTo(null);
     showNotice('Reply posted.');
@@ -417,20 +300,14 @@ export default function HomePage() {
 
   async function submitPrediction() {
     if (!selectedStory || prediction.trim().length < 8) return;
-    if (isCloudId(selectedStory.id)) {
-      try {
-        const response = await fetch('/api/theories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId: selectedStory.id, body: prediction.trim() }) });
-        const result = await response.json();
-        if (!response.ok) { showNotice(result.error || 'Sign in to submit a theory.'); return; }
-      } catch { showNotice('Could not submit your theory.'); return; }
-      setPrediction('');
-      await loadDiscussion(selectedStory.id);
-      showNotice('Your theory was shared with UNTOLD readers.');
-      return;
-    }
-    setSubmittedPredictions((current) => { const next = { ...current, [selectedStory.id]: [...(current[selectedStory.id] ?? []), prediction.trim()] }; localStorage.setItem(THEORIES_KEY, JSON.stringify(next)); return next; });
+    try {
+      const response = await fetch('/api/theories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId: selectedStory.id, body: prediction.trim() }) });
+      const result = await response.json();
+      if (!response.ok) { showNotice(result.error || 'Sign in to submit a theory.'); return; }
+    } catch { showNotice('Could not submit your theory.'); return; }
     setPrediction('');
-    showNotice('Theory added to this sample story on this device.');
+    await loadDiscussion(selectedStory.id);
+    showNotice('Your theory was shared with UNTOLD readers.');
   }
 
   function publishDraft() {
@@ -443,8 +320,6 @@ export default function HomePage() {
     setNewTitle('');
     setNewOpening('');
   }
-
-  const localOwnTheories = selectedStory && !isCloudId(selectedStory.id) ? submittedPredictions[selectedStory.id] ?? [] : [];
 
   return (
     <main className="app-shell">
@@ -618,13 +493,13 @@ export default function HomePage() {
                   <strong>
                     {activeNav === 'Reading list'
                       ? 'Your reading list is empty'
-                      : 'No stories found'}
+                      : storiesLoaded ? 'No stories yet' : 'Loading stories…'}
                   </strong>
 
                   <span>
                     {activeNav === 'Reading list'
                       ? 'Save a story and it will be waiting here.'
-                      : 'Try another search or tab.'}
+                      : storiesLoaded ? 'Check back soon, or try another search or tab.' : 'One moment.'}
                   </span>
 
                   <button
@@ -674,7 +549,7 @@ export default function HomePage() {
             <div className="reader-body">{selectedStory.body.slice(0, 2).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
             <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} /><span className="gallery-caption">{image.caption}</span><span className="gallery-expand"><Plus size={16} /></span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
             {(selectedStory.lockedChapters?.length || selectedStory.body.length > 2 || selectedStory.progress < 100) ? <section className="locked-chapter-list"><div className="reveal-card"><div className="reveal-card-icon"><Clock3 size={18} /></div><div><span className="eyebrow muted-eyebrow">THE REST IS STILL HIDDEN</span><h3>The story isn&apos;t over.</h3><p>Titles are visible. The words stay hidden until the creator reveals them.</p></div><span className="reveal-status">REVEAL PENDING</span></div>{(selectedStory.lockedChapters?.length ? selectedStory.lockedChapters : selectedStory.body.slice(2).map((body, index) => ({ title: index === 0 ? 'The next clue' : `Part II · ${index + 1}`, body }))).map((chapter, index) => <section className="reader-locked-part" key={`${chapter.title}-${index}`}><p className="eyebrow muted-eyebrow">PART {String(index + 2).padStart(2, '0')} · REVEAL LATER</p><h3>{chapter.title}</h3><div className="reader-locked-copy" aria-label="Chapter content hidden">{chapter.body || 'The next part is waiting to be revealed.'}</div><div className="reader-locked-message"><Clock3 size={16} /><strong>This part is still hidden</strong><span>Come back when the creator reveals it.</span></div></section>)}</section> : null}
-            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length + localOwnTheories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{localOwnTheories.map((text, index) => <article className="theory-card own-theory" key={`${text}-${index}`}><div className="theory-author"><span className="theory-avatar">Y</span><strong>you</strong><span>just now</span><span className="own-label">YOUR THEORY</span></div><p>{text}</p></article>)}{selectedStory.theories.map((theory) => {
+            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{selectedStory.theories.map((theory) => {
               const liked = Boolean(likedTheories[theory.id]);
               const isReplying = replyingTo === theory.id;
               return <article className="theory-card" key={theory.id}>
