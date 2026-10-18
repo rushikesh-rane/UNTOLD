@@ -1,0 +1,17 @@
+/* Hand-tuned dark-mode rules. Appended to dark-theme.css by
+   scripts/generate-dark-theme.py (re-run it after editing this file). */
+
+html[data-theme='dark'] ::selection {
+  background: rgba(203, 168, 247, .32);
+  color: #fff;
+}
+
+html[data-theme='dark'] input::placeholder,
+html[data-theme='dark'] textarea::placeholder {
+  color: #8d8795;
+}
+
+/* Photos sit a touch lower so they don't glare against the dark UI */
+html[data-theme='dark'] img {
+  filter: brightness(.92);
+}

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { type Story } from '@/lib/stories';
 import { createClient } from '@/lib/supabase/client';
+import ThemeToggle from '@/components/ThemeToggle';
 
 type CloudAuthor = {
   display_name?: string | null;
@@ -331,6 +332,7 @@ export default function HomePage() {
         <div className="topbar-note"><span className="live-dot" /> STORIES IN PROGRESS</div>
         <div className="topbar-actions">
           <button className="icon-button" aria-label="Search stories" onClick={() => setSearchOpen(!searchOpen)}><Search size={18} /></button>
+          <ThemeToggle />
           <Link href="/community" className="profile-button" aria-label="Your community" title="Reading list, following, theories and predictions"><Users size={17} /><span>Community</span></Link>
           <Link href="/account" className="profile-button" aria-label="Your profile" title="Your profile"><UserRound size={17} /><span>Profile</span></Link>
           <Link href="/write" className="publish-button"><Plus size={16} /><span>Write a story</span></Link>

@@ -6396,3 +6396,67 @@ select:focus {
   opacity: .5;
   cursor: not-allowed;
 }
+
+/* ------------------------------------------------------------------
+   Theme toggle (dark mode lives in dark-theme.css)
+------------------------------------------------------------------ */
+.theme-toggle {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle .theme-icon {
+  transition: transform .45s var(--ease-spring), opacity .25s;
+}
+
+.theme-toggle .theme-icon-sun {
+  display: none;
+}
+
+html[data-theme='dark'] .theme-toggle .theme-icon-moon {
+  display: none;
+}
+
+html[data-theme='dark'] .theme-toggle .theme-icon-sun {
+  display: block;
+}
+
+.theme-toggle:hover .theme-icon {
+  transform: rotate(-14deg) scale(1.08);
+}
+
+/* Fit one more header action on small phones */
+@media (max-width: 390px) {
+  .topbar {
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 6px;
+  }
+
+  .topbar-actions {
+    gap: 5px;
+  }
+
+  .topbar-actions .icon-button,
+  .topbar-actions .profile-button {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+  }
+
+  .topbar-actions .publish-button {
+    height: 34px;
+    padding: 0 11px;
+  }
+
+  .topbar .brand-word {
+    font-size: 21px;
+  }
+}
+
+@media (max-width: 340px) {
+  .topbar .brand-word {
+    display: none;
+  }
+}
