@@ -28,6 +28,7 @@ type CloudStory = {
   genre: string | null;
   title: string;
   synopsis: string | null;
+  cover_url?: string | null;
   author?: CloudAuthor | CloudAuthor[] | null;
   profiles?: CloudAuthor | CloudAuthor[] | null;
   chapters?: CloudChapter[] | null;
@@ -39,6 +40,7 @@ type CloudTheory = {
 };
 
 type MediaStory = Story & {
+  coverUrl?: string;
   body: string[];
   lockedChapters?: { title: string; body: string }[];
   images: { src: string; alt: string; caption: string }[];
@@ -115,7 +117,7 @@ const SAVED_KEY = 'untold.saved-stories.v1';
 const THEORIES_KEY = 'untold.reader-theories.v1';
 const VOTES_KEY = 'untold.theory-votes.v1';
 const PUBLISHED_KEY = 'untold.published-stories.v1';
-type LocalPublishedStory = { id: string; title: string; category: string; synopsis: string; chapters: { id: string; title: string; body: string; reveal: 'now' | 'later' }[]; author?: string; publishedAt?: string };
+type LocalPublishedStory = { id: string; title: string; category: string; synopsis: string; cover_url?: string | null; coverUrl?: string | null; chapters: { id: string; title: string; body: string; reveal: 'now' | 'later' }[]; author?: string; publishedAt?: string };
 
 function Avatar({ initials, color }: { initials: string; color: string }) {
   return <span className={`avatar avatar-${color}`}>{initials}</span>;
@@ -159,7 +161,7 @@ export default function HomePage() {
             const rawBody = chapters.flatMap((chapter) => [chapter.title, chapter.body]).filter((text): text is string => Boolean(text));
             const images = rawBody.flatMap((text: string) => Array.from(text.matchAll(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g), (match) => ({ src: match[2], alt: match[1] || 'Story illustration', caption: match[1] || 'A moment from the story' })));
             const body = rawBody.map((text: string) => text.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '').trim()).filter(Boolean);
-            return { id: item.id, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images, theories: [], audioLabel: 'Listen to the opening' };
+            return { id: item.id, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images, theories: [], audioLabel: 'Listen to the opening' };
           });
           setPublishedStories((current) => [...cloudStories, ...current.filter((old) => !cloudStories.some((cloud) => cloud.id === old.id))]);
         }
@@ -178,7 +180,7 @@ export default function HomePage() {
         const available = item.chapters.filter((chapter) => chapter.reveal === 'now');
         const locked = item.chapters.filter((chapter) => chapter.reveal === 'later');
         const category = /real life/i.test(item.category) ? 'REAL LIFE' as const : 'FICTION' as const;
-        return { id: item.id, category, title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: item.author || 'You', handle: '@you', initials: 'YO', color: 'violet', readTime: `${Math.max(1, Math.ceil(available.reduce((n, c) => n + c.body.length, 0) / 900))} min read`, predictions: 0, comments: 0, reveal: locked.length ? 'More to come' : 'Complete', progress: locked.length ? 50 : 100, body: available.flatMap((chapter) => [chapter.title, chapter.body]).filter(Boolean), images: [], theories: [], audioLabel: 'Listen to the opening', lockedChapters: locked.map(({ title, body }) => ({ title, body })) };
+        return { id: item.id, coverUrl: item.coverUrl || item.cover_url || undefined, category, title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: item.author || 'You', handle: '@you', initials: 'YO', color: 'violet', readTime: `${Math.max(1, Math.ceil(available.reduce((n, c) => n + c.body.length, 0) / 900))} min read`, predictions: 0, comments: 0, reveal: locked.length ? 'More to come' : 'Complete', progress: locked.length ? 50 : 100, body: available.flatMap((chapter) => [chapter.title, chapter.body]).filter(Boolean), images: [], theories: [], audioLabel: 'Listen to the opening', lockedChapters: locked.map(({ title, body }) => ({ title, body })) };
       }));
     } catch { /* Ignore malformed local prototype data and keep the sample stories available. */ }
     return () => { alive = false; window.removeEventListener('focus', refreshPublishedStories); document.removeEventListener('visibilitychange', refreshPublishedStories); };
@@ -370,6 +372,21 @@ export default function HomePage() {
                       >
                         <span className="story-index">
                           {String(index + 1).padStart(2, '0')}
+                        </span>
+
+                        <span className={`story-row-cover${story.coverUrl ? ' has-cover' : ' no-cover'}`} aria-hidden="true">
+                          {story.coverUrl ? (
+                            <img
+                              src={story.coverUrl}
+                              alt=""
+                              loading={index < 3 ? 'eager' : 'lazy'}
+                              onError={(event) => {
+                                event.currentTarget.style.display = 'none';
+                                event.currentTarget.parentElement?.classList.add('cover-load-failed');
+                              }}
+                            />
+                          ) : null}
+                          {!story.coverUrl ? <span className="story-cover-fallback"><BookOpen size={22} /><span>UNTOLD</span></span> : null}
                         </span>
 
                         <span className="story-row-copy">
