@@ -1,12 +1,35 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+
 export async function GET(request: Request) {
   const supabase = await createClient();
   const storyId = new URL(request.url).searchParams.get('storyId');
-  if (!storyId) return NextResponse.json({ error: 'storyId is required.' }, { status: 400 });
-  const { data, error } = await supabase.from('theories').select('id,user_id,story_id,body,created_at,profiles(display_name,username)').eq('story_id', storyId).order('created_at', { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  if (!storyId) {
+    return NextResponse.json(
+      { error: 'storyId is required.' },
+      { status: 400 }
+    );
+  }
+
+  const { data, error } = await supabase
+    .from('theories')
+    .select(`
+      id,
+      user_id,
+      story_id,
+      body,
+      created_at,
+      profiles!theories_user_id_fkey(display_name, username)
+    `)
+    .eq('story_id', storyId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
   return NextResponse.json({ theories: data ?? [] });
 }
 

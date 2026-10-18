@@ -25,6 +25,7 @@ type CloudChapter = {
 
 type CloudStory = {
   id: string;
+  author_id?: string | null;
   genre: string | null;
   title: string;
   synopsis: string | null;
@@ -34,15 +35,18 @@ type CloudStory = {
 };
 
 type CloudTheory = {
+  id?: string;
+  user_id?: string;
   body: string;
   profiles?: CloudAuthor | CloudAuthor[] | null;
 };
 
 type MediaStory = Story & {
+  authorId?: string;
   body: string[];
   lockedChapters?: { title: string; body: string }[];
   images: { src: string; alt: string; caption: string }[];
-  theories: { author: string; text: string; votes: number }[];
+  theories: { id?: string; userId?: string; author: string; text: string; votes: number }[];
   audioLabel: string;
 };
 
@@ -115,7 +119,21 @@ const SAVED_KEY = 'untold.saved-stories.v1';
 const THEORIES_KEY = 'untold.reader-theories.v1';
 const VOTES_KEY = 'untold.theory-votes.v1';
 const PUBLISHED_KEY = 'untold.published-stories.v1';
-type LocalPublishedStory = { id: string; title: string; category: string; synopsis: string; chapters: { id: string; title: string; body: string; reveal: 'now' | 'later' }[]; author?: string; publishedAt?: string };
+type LocalPublishedStory = {
+  id: string;
+  title: string;
+  category: string;
+  synopsis: string;
+  chapters: {
+    id: string;
+    title: string;
+    body: string;
+    reveal: 'now' | 'later';
+  }[];
+  author?: string;
+  author_id?: string;
+  publishedAt?: string;
+};
 
 function Avatar({ initials, color }: { initials: string; color: string }) {
   return <span className={`avatar avatar-${color}`}>{initials}</span>;
@@ -150,6 +168,11 @@ export default function HomePage() {
         if (user) {
           const { data: bookmarks } = await supabase.from('bookmarks').select('story_id').eq('user_id', user.id);
           if (alive && bookmarks) setSavedStories(bookmarks.map((item) => item.story_id));
+          const followResponse = await fetch('/api/follows', { cache: 'no-store' });
+          const followPayload = await followResponse.json().catch(() => ({}));
+          if (alive && followResponse.ok && Array.isArray(followPayload.follows)) {
+            setFollowedIds(followPayload.follows.map((item: { followed_id: string }) => item.followed_id));
+          }
         }
         const response = await fetch('/api/stories', { cache: 'no-store' });
         const payload = (await response.json()) as { stories?: CloudStory[] };
@@ -159,8 +182,21 @@ export default function HomePage() {
             const author = Array.isArray(authorSource) ? authorSource[0] : authorSource;
             const chapters = (item.chapters ?? []).filter((chapter) => chapter.is_revealed && (!chapter.reveal_at || new Date(chapter.reveal_at) <= new Date())).sort((a, b) => a.position - b.position);
             const body = chapters.flatMap((chapter) => [chapter.title, chapter.body]).filter((text): text is string => Boolean(text));
-            return { id: item.id, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images: [], theories: [], audioLabel: 'Listen to the opening' };
+            return {
+              id: item.id,
+              authorId: item.author_id || undefined,
+              category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION',
+              title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images: [], theories: [], audioLabel: 'Listen to the opening'
+            };
           });
+          console.log(
+            'UNTOLD cloud stories:',
+            cloudStories.map((story) => ({
+              title: story.title,
+              id: story.id,
+              authorId: story.authorId,
+            }))
+          );
           setPublishedStories((current) => [...cloudStories, ...current.filter((old) => !cloudStories.some((cloud) => cloud.id === old.id))]);
         }
       } catch { /* Keep the sample discovery experience available if cloud loading fails. */ }
@@ -178,7 +214,7 @@ export default function HomePage() {
         const available = item.chapters.filter((chapter) => chapter.reveal === 'now');
         const locked = item.chapters.filter((chapter) => chapter.reveal === 'later');
         const category = /real life/i.test(item.category) ? 'REAL LIFE' as const : 'FICTION' as const;
-        return { id: item.id, category, title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: item.author || 'You', handle: '@you', initials: 'YO', color: 'violet', readTime: `${Math.max(1, Math.ceil(available.reduce((n, c) => n + c.body.length, 0) / 900))} min read`, predictions: 0, comments: 0, reveal: locked.length ? 'More to come' : 'Complete', progress: locked.length ? 50 : 100, body: available.flatMap((chapter) => [chapter.title, chapter.body]).filter(Boolean), images: [], theories: [], audioLabel: 'Listen to the opening', lockedChapters: locked.map(({ title, body }) => ({ title, body })) };
+        return { id: item.id, authorId: item.author_id || undefined, category, title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: item.author || 'You', handle: '@you', initials: 'YO', color: 'violet', readTime: `${Math.max(1, Math.ceil(available.reduce((n, c) => n + c.body.length, 0) / 900))} min read`, predictions: 0, comments: 0, reveal: locked.length ? 'More to come' : 'Complete', progress: locked.length ? 50 : 100, body: available.flatMap((chapter) => [chapter.title, chapter.body]).filter(Boolean), images: [], theories: [], audioLabel: 'Listen to the opening', lockedChapters: locked.map(({ title, body }) => ({ title, body })) };
       }));
     } catch { /* Ignore malformed local prototype data and keep the sample stories available. */ }
     return () => { alive = false; window.removeEventListener('focus', refreshPublishedStories); document.removeEventListener('visibilitychange', refreshPublishedStories); };
@@ -221,6 +257,11 @@ export default function HomePage() {
     setIsSpeaking(false);
     setPrediction('');
     setSelectedStory(story);
+    console.log('UNTOLD selected story:', {
+      title: story.title,
+      id: story.id,
+      authorId: story.authorId,
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(story.id)) {
       try {
@@ -230,7 +271,7 @@ export default function HomePage() {
           const theoryPayload = result as { theories?: CloudTheory[] };
           const theories = (theoryPayload.theories ?? []).map((item) => {
             const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
-            return { author: profile?.username || profile?.display_name || 'reader', text: item.body, votes: 0 };
+            return { id: item.id, userId: item.user_id, author: profile?.username || profile?.display_name || 'reader', text: item.body, votes: 0 };
           });
           setSelectedStory((current) => current?.id === story.id ? { ...current, theories } : current);
         }
@@ -430,7 +471,23 @@ export default function HomePage() {
             <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'FICTION' ? 'pill-fiction' : ''}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>PART I · THE SETUP</span></div>
             <h1 className="reader-title">{selectedStory.title}</h1>
             <p className="reader-deck">{selectedStory.excerpt}</p>
-            <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div><button className="follow-button" onClick={() => showNotice('Following will be available when accounts are connected.')}>Follow <Plus size={13} /></button></div>
+            <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div>{selectedStory.authorId ? <button className="follow-button" disabled={followLoading} onClick={async () => {
+              const creatorId = selectedStory.authorId!;
+              const isFollowing = followedIds.includes(creatorId);
+              setFollowLoading(true);
+              try {
+                const response = await fetch(isFollowing ? `/api/follows?creatorId=${encodeURIComponent(creatorId)}` : '/api/follows', {
+                  method: isFollowing ? 'DELETE' : 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: isFollowing ? undefined : JSON.stringify({ creatorId }),
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) { showNotice(result.error || 'Sign in to follow this creator.'); return; }
+                setFollowedIds((current) => isFollowing ? current.filter((id) => id !== creatorId) : [...current, creatorId]);
+                showNotice(isFollowing ? 'You unfollowed this creator.' : 'You are now following this creator.');
+              } catch { showNotice('Could not update your follow. Try again.'); }
+              finally { setFollowLoading(false); }
+            }}>{followedIds.includes(selectedStory.authorId) ? 'Following' : 'Follow'} {followedIds.includes(selectedStory.authorId) ? <Check size={13} /> : <Plus size={13} />}</button> : <button className="follow-button" onClick={() => showNotice('This sample story has no connected creator account yet.')}>Follow <Plus size={13} /></button>}</div>
             <div className="reader-tools"><button className={`listen-button ${isSpeaking ? 'listening' : ''}`} onClick={toggleNarration}>{isSpeaking ? <Pause size={16} /> : <Headphones size={16} />}{isSpeaking ? 'Pause narration' : 'Listen to story'}<span><Volume2 size={13} /> browser audio</span></button><button className={`reader-save ${savedStories.includes(selectedStory.id) ? 'is-saved' : ''}`} onClick={() => toggleSave(selectedStory.id)}>{savedStories.includes(selectedStory.id) ? <Check size={16} /> : <Bookmark size={16} />}{savedStories.includes(selectedStory.id) ? 'Saved' : 'Save story'}</button></div>
             <div className="reader-body">{selectedStory.body.slice(0, 2).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
             <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} /><span className="gallery-caption">{image.caption}</span><span className="gallery-expand"><Plus size={16} /></span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
