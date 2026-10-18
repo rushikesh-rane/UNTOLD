@@ -37,7 +37,16 @@ export async function GET() {
         for (const row of (predictionRows.data ?? []) as { story_id: string }[]) predictionCounts[row.story_id] = (predictionCounts[row.story_id] ?? 0) + 1;
       }
     } catch { /* Counts stay at zero. */ }
-    const storiesWithCounts = visibleStories.map((story) => ({ ...story, theories: [{ count: theoryCounts[story.id] ?? 0 }], predictions: [{ count: predictionCounts[story.id] ?? 0 }] }));
+    // Scheduled parts: only the part number and release time, never the text (see upcoming_chapters()).
+    // Like the counts, this is best-effort: if the migration has not been applied yet, stories still load.
+    const upcomingByStory: Record<string, { position: number; reveal_at: string }[]> = {};
+    try {
+      const { data: upcomingRows } = await supabase.rpc('upcoming_chapters');
+      for (const row of (upcomingRows ?? []) as { story_id: string; position: number; reveal_at: string }[]) {
+        (upcomingByStory[row.story_id] ??= []).push({ position: row.position, reveal_at: row.reveal_at });
+      }
+    } catch { /* No countdowns; the stories themselves are unaffected. */ }
+    const storiesWithCounts = visibleStories.map((story) => ({ ...story, upcoming: upcomingByStory[story.id] ?? [], theories: [{ count: theoryCounts[story.id] ?? 0 }], predictions: [{ count: predictionCounts[story.id] ?? 0 }] }));
 
     return NextResponse.json({ stories: storiesWithCounts }, { headers: { 'Cache-Control': 'no-store, max-age=0' } });
   } catch {

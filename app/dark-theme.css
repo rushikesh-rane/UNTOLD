@@ -2025,3 +2025,21 @@ html[data-theme='dark'] .editorial-sidebar {
 html[data-theme='dark'] .sk::after {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .07), transparent);
 }
+
+html[data-theme='dark'] .reveal-countdown p {
+  color: #bdb3c4;
+}
+
+html[data-theme='dark'] .reveal-countdown.is-next {
+  border-color: #5a4a68;
+  box-shadow: 0 0 0 3px rgba(199, 171, 224, .08);
+}
+
+html[data-theme='dark'] .reveal-refresh {
+  background: #c7abe0;
+  color: #1e1c22;
+}
+
+html[data-theme='dark'] .story-row-reveal {
+  color: #c7abe0;
+}

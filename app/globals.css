@@ -819,6 +819,23 @@ button {
   margin: 0 0 22px
 }
 
+.reader-part + .reader-part {
+  margin-top: 44px;
+  padding-top: 36px;
+  border-top: 1px solid rgba(120, 100, 140, .22)
+}
+
+.reader-part-label {
+  margin: 0 0 8px !important;
+  font-family: var(--sans, inherit)
+}
+
+.reader-part-title {
+  margin: 0 0 18px;
+  font: 600 28px/1.2 var(--serif);
+  color: inherit
+}
+
 .media-section {
   margin: 40px 0 35px
 }
@@ -6691,4 +6708,77 @@ html[data-theme='dark'] .theme-toggle .theme-icon-sun {
   .sk::after { animation: none; display: none; }
   .nav-progress-loading { animation: none; transform: scaleX(.6); }
   .auth-spinner { animation-duration: 2.5s; }
+}
+
+/* ---------- Scheduled parts: "Part 2 reveals in 2 days" ---------- */
+.reveal-countdown-list {
+  margin: 40px 0 44px;
+  display: grid;
+  gap: 14px
+}
+
+.reveal-card.reveal-countdown {
+  margin: 0;
+  align-items: flex-start
+}
+
+.reveal-countdown h3 {
+  font-size: 24px;
+  line-height: 1.25;
+  margin: 6px 0 8px
+}
+
+.reveal-countdown p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6f6577
+}
+
+.reveal-countdown .reveal-status {
+  font-size: 11px;
+  letter-spacing: .8px
+}
+
+.reveal-countdown.is-next {
+  border-color: #cdb6dc;
+  box-shadow: 0 0 0 3px rgba(121, 92, 145, .08)
+}
+
+.reveal-countdown:not(.is-next):not(.is-ready) {
+  opacity: .85
+}
+
+.reveal-refresh {
+  margin-top: 12px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #795c91;
+  color: #fff;
+  font: 600 14px var(--sans);
+  cursor: pointer
+}
+
+.reveal-refresh:focus-visible {
+  outline: 3px solid #b99bd1;
+  outline-offset: 3px
+}
+
+.story-row-reveal {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #795c91;
+  font-weight: 600
+}
+
+@media (max-width: 600px) {
+  .reveal-card.reveal-countdown {
+    flex-wrap: wrap
+  }
+
+  .reveal-countdown h3 {
+    font-size: 21px
+  }
 }

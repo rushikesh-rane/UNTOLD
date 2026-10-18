@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { type Story } from '@/lib/stories';
 import { createClient } from '@/lib/supabase/client';
+import { buildReaderParts, buildUpcomingParts, countdownLabel, formatRevealDate, partsToPlainText, type ReaderPart, type UpcomingPart } from '@/lib/reader';
 import ThemeToggle from '@/components/ThemeToggle';
 import { StoryListSkeleton, TheorySkeleton } from '@/components/Skeletons';
 
@@ -35,6 +36,7 @@ type CloudStory = {
   author?: CloudAuthor | CloudAuthor[] | null;
   profiles?: CloudAuthor | CloudAuthor[] | null;
   chapters?: CloudChapter[] | null;
+  upcoming?: { position: number; reveal_at: string | null }[] | null;
   theories?: { count: number }[] | null;
   predictions?: { count: number }[] | null;
 };
@@ -63,7 +65,10 @@ type MediaStory = Story & {
   authorId?: string;
   coverUrl?: string;
   body: string[];
-  lockedChapters?: { title: string; body: string }[];
+  /** Every released chapter, in order. This is what the reader renders. */
+  parts: ReaderPart[];
+  /** Scheduled parts that readers cannot open yet: part number and release time only. */
+  upcoming: UpcomingPart[];
   images: { src: string; alt: string; caption: string }[];
   theories: Theory[];
   audioLabel: string;
@@ -79,6 +84,17 @@ function timeAgo(iso?: string) {
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   if (seconds < 86400 * 30) return `${Math.floor(seconds / 86400)}d ago`;
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// Turns one story from /api/stories into what the app displays. Shared by the first load and by
+// the refresh that runs when a scheduled part unlocks while someone is reading.
+function mapCloudStory(item: CloudStory): MediaStory {
+  const authorSource = item.author ?? item.profiles;
+  const author = Array.isArray(authorSource) ? authorSource[0] : authorSource;
+  const { parts, images } = buildReaderParts(item.chapters ?? []);
+  const upcoming = buildUpcomingParts(item.upcoming);
+  const body = parts.flatMap((part) => part.paragraphs);
+  return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 50, body, parts, upcoming, images, theories: [], audioLabel: 'Listen to the opening' };
 }
 
 function Avatar({ initials, color }: { initials: string; color: string }) {
@@ -110,6 +126,8 @@ export default function HomePage() {
   const [followBusy, setFollowBusy] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string; caption: string } | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  const autoRefreshed = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let alive = true;
@@ -129,15 +147,7 @@ export default function HomePage() {
         const response = await fetch('/api/stories', { cache: 'no-store' });
         const payload = (await response.json()) as { stories?: CloudStory[] };
         if (response.ok && Array.isArray(payload.stories) && alive) {
-          const cloudStories: MediaStory[] = payload.stories.map((item) => {
-            const authorSource = item.author ?? item.profiles;
-            const author = Array.isArray(authorSource) ? authorSource[0] : authorSource;
-            const chapters = (item.chapters ?? []).filter((chapter) => chapter.is_revealed && (!chapter.reveal_at || new Date(chapter.reveal_at) <= new Date())).sort((a, b) => a.position - b.position);
-            const rawBody = chapters.flatMap((chapter) => [chapter.title, chapter.body]).filter((text): text is string => Boolean(text));
-            const images = rawBody.flatMap((text: string) => Array.from(text.matchAll(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g), (match) => ({ src: match[2], alt: match[1] || 'Story illustration', caption: match[1] || 'A moment from the story' })));
-            const body = rawBody.map((text: string) => text.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '').trim()).filter(Boolean);
-            return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: 'Continue reading', progress: 50, body, images, theories: [], audioLabel: 'Listen to the opening' };
-          });
+          const cloudStories: MediaStory[] = payload.stories.map(mapCloudStory);
           setPublishedStories((current) => [...cloudStories, ...current.filter((old) => !cloudStories.some((cloud) => cloud.id === old.id))]);
         }
       } catch { /* Stories stay empty if loading fails; the next refresh retries. */ }
@@ -153,6 +163,41 @@ export default function HomePage() {
     } catch { /* Storage can be unavailable (private mode). */ }
     return () => { alive = false; window.removeEventListener('focus', refreshPublishedStories); document.removeEventListener('visibilitychange', refreshPublishedStories); };
   }, []);
+
+  // Keeps "reveals in 2 days" honest while the page stays open.
+  const anyUpcoming = publishedStories.some((story) => story.upcoming.length > 0);
+  useEffect(() => {
+    if (!anyUpcoming) return;
+    setNowTick(Date.now());
+    const timer = window.setInterval(() => setNowTick(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, [anyUpcoming]);
+
+  // Re-downloads the open story so a part that just unlocked appears without a manual reload.
+  async function refreshSelectedStory() {
+    const id = selectedStory?.id;
+    if (!id) return;
+    try {
+      const response = await fetch('/api/stories', { cache: 'no-store' });
+      const payload = (await response.json()) as { stories?: CloudStory[] };
+      const fresh = response.ok ? payload.stories?.find((item) => item.id === id) : undefined;
+      if (!fresh) return;
+      const mapped = mapCloudStory(fresh);
+      setPublishedStories((current) => current.map((story) => story.id === id ? mapped : story));
+      setSelectedStory((current) => current && current.id === id ? { ...mapped, theories: current.theories } : current);
+    } catch { /* The "Read Part N" button stays so the reader can retry. */ }
+  }
+
+  useEffect(() => {
+    if (!selectedStory) return;
+    const due = selectedStory.upcoming.find((part) => Date.parse(part.revealAt) <= nowTick);
+    if (!due) return;
+    const key = `${selectedStory.id}:${due.position}`;
+    if (autoRefreshed.current.has(key)) return; // try once automatically; the button covers retries
+    autoRefreshed.current.add(key);
+    void refreshSelectedStory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nowTick, selectedStory]);
 
   useEffect(() => () => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -306,7 +351,7 @@ export default function HomePage() {
       setIsSpeaking(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(`${selectedStory.title}. ${selectedStory.body.join(' ')}`);
+    const utterance = new SpeechSynthesisUtterance(`${selectedStory.title}. ${partsToPlainText(selectedStory.parts)}`);
     utterance.rate = 0.94;
     utterance.pitch = 0.96;
     utterance.onend = () => setIsSpeaking(false);
@@ -458,6 +503,8 @@ export default function HomePage() {
                               <Clock3 size={13} /> {story.readTime}
                             </span>
 
+                            {story.upcoming.length ? <span className="story-row-reveal"><Clock3 size={13} /> {countdownLabel(story.upcoming[0], new Date(nowTick)).text}</span> : null}
+
                             <span className="story-row-author">
                               by {story.author}
                             </span>
@@ -563,14 +610,26 @@ export default function HomePage() {
         <div className="reader-page">
           <button className="back-button" onClick={() => { if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel(); setIsSpeaking(false); setSelectedStory(null); }}><ArrowLeft size={16} /> Back to stories</button>
           <article className="reader-article">
-            <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'FICTION' ? 'pill-fiction' : ''}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>PART I · THE SETUP</span></div>
+            <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'FICTION' ? 'pill-fiction' : ''}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>{selectedStory.parts.length > 1 ? `${selectedStory.parts.length} PARTS` : 'ONE PART'}</span></div>
             <h1 className="reader-title">{selectedStory.title}</h1>
             <p className="reader-deck">{selectedStory.excerpt}</p>
             <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div>{!(currentUserId && selectedStory.authorId === currentUserId) && <button className={`follow-button${selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? ' is-following' : ''}`} aria-pressed={Boolean(selectedStory.authorId && followedIds.includes(selectedStory.authorId))} onClick={() => void toggleFollow(selectedStory)}>{selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? <>Following <Check size={13} /></> : <>Follow <Plus size={13} /></>}</button>}</div>
             <div className="reader-tools"><button className={`listen-button ${isSpeaking ? 'listening' : ''}`} onClick={toggleNarration}>{isSpeaking ? <Pause size={16} /> : <Headphones size={16} />}{isSpeaking ? 'Pause narration' : 'Listen to story'}<span><Volume2 size={13} /> browser audio</span></button><button className={`reader-save ${savedStories.includes(selectedStory.id) ? 'is-saved' : ''}`} onClick={() => toggleSave(selectedStory.id)}>{savedStories.includes(selectedStory.id) ? <Check size={16} /> : <Bookmark size={16} />}{savedStories.includes(selectedStory.id) ? 'Saved' : 'Save story'}</button></div>
-            <div className="reader-body">{selectedStory.body.slice(0, 2).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+            <div className="reader-body">{selectedStory.parts.map((part) => <section className="reader-part" key={part.position} aria-label={`Part ${part.position}`}>{selectedStory.parts.length > 1 ? <p className="eyebrow muted-eyebrow reader-part-label">PART {String(part.position).padStart(2, '0')}</p> : null}{part.heading ? <h2 className="reader-part-title">{part.heading}</h2> : null}{part.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</section>)}</div>
+            {selectedStory.upcoming.length ? <section className="reveal-countdown-list" aria-label="Parts that unlock later">{selectedStory.upcoming.map((part, index) => {
+              const countdown = countdownLabel(part, new Date(nowTick));
+              return <div className={`reveal-card reveal-countdown${index === 0 ? ' is-next' : ''}${countdown.ready ? ' is-ready' : ''}`} key={part.position}>
+                <div className="reveal-card-icon"><Clock3 size={18} /></div>
+                <div>
+                  <span className="eyebrow muted-eyebrow">{countdown.ready ? 'JUST UNLOCKED' : index === 0 ? 'THE NEXT PART' : 'COMING LATER'}</span>
+                  <h3>{countdown.text}</h3>
+                  <p>{countdown.ready ? 'Loading it now. If it does not appear, tap the button.' : `Unlocks ${formatRevealDate(part.revealAt)}. Until then the words stay hidden, even from us.`}</p>
+                  {countdown.ready ? <button type="button" className="reveal-refresh" onClick={() => void refreshSelectedStory()}>Read Part {part.position}</button> : null}
+                </div>
+                <span className="reveal-status">{countdown.ready ? 'LIVE' : 'REVEAL PENDING'}</span>
+              </div>;
+            })}</section> : null}
             <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} loading="lazy" decoding="async" /><span className="gallery-caption">{image.caption}</span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
-            {(selectedStory.lockedChapters?.length || selectedStory.body.length > 2 || selectedStory.progress < 100) ? <section className="locked-chapter-list"><div className="reveal-card"><div className="reveal-card-icon"><Clock3 size={18} /></div><div><span className="eyebrow muted-eyebrow">THE REST IS STILL HIDDEN</span><h3>The story isn&apos;t over.</h3><p>Titles are visible. The words stay hidden until the creator reveals them.</p></div><span className="reveal-status">REVEAL PENDING</span></div>{(selectedStory.lockedChapters?.length ? selectedStory.lockedChapters : selectedStory.body.slice(2).map((body, index) => ({ title: index === 0 ? 'The next clue' : `Part II · ${index + 1}`, body }))).map((chapter, index) => <section className="reader-locked-part" key={`${chapter.title}-${index}`}><p className="eyebrow muted-eyebrow">PART {String(index + 2).padStart(2, '0')} · REVEAL LATER</p><h3>{chapter.title}</h3><div className="reader-locked-copy" aria-label="Chapter content hidden">{chapter.body || 'The next part is waiting to be revealed.'}</div><div className="reader-locked-message"><Clock3 size={16} /><strong>This part is still hidden</strong><span>Come back when the creator reveals it.</span></div></section>)}</section> : null}
             <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{discussionLoading && !selectedStory.theories.length ? <TheorySkeleton /> : null}{selectedStory.theories.map((theory) => {
               const liked = Boolean(likedTheories[theory.id]);
               const isReplying = replyingTo === theory.id;
