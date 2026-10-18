@@ -9,7 +9,7 @@ export async function GET() {
     const { data: stories, error } = await supabase.from('stories').select(`
       id,title,genre,synopsis,cover_url,author_id,published_at,
       author:profiles!stories_author_id_fkey(display_name, username),
-      chapters(id,title,body,position,is_revealed)
+      chapters(id,title,body,position,is_revealed,reveal_at)
     `).eq('status', 'published').order('published_at', { ascending: false, nullsFirst: false });
 
     if (error) {
@@ -19,7 +19,7 @@ export async function GET() {
     const visibleStories = (stories ?? []).map((story) => ({
       ...story,
       chapters: (story.chapters ?? [])
-        .filter((chapter) => chapter.is_revealed === true)
+        .filter((chapter) => chapter.is_revealed === true && (!chapter.reveal_at || new Date(chapter.reveal_at) <= new Date()))
         .sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
     }));
 

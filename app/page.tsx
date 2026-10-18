@@ -25,6 +25,7 @@ type CloudChapter = {
 
 type CloudStory = {
   id: string;
+  author_id?: string | null;
   genre: string | null;
   title: string;
   synopsis: string | null;
@@ -40,6 +41,7 @@ type CloudTheory = {
 };
 
 type MediaStory = Story & {
+  authorId?: string;
   coverUrl?: string;
   body: string[];
   lockedChapters?: { title: string; body: string }[];
@@ -138,6 +140,9 @@ export default function HomePage() {
   const [newTitle, setNewTitle] = useState('');
   const [newOpening, setNewOpening] = useState('');
   const [notice, setNotice] = useState('');
+  const [followedIds, setFollowedIds] = useState<string[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [followBusy, setFollowBusy] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string; caption: string } | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
@@ -150,6 +155,9 @@ export default function HomePage() {
         if (user) {
           const { data: bookmarks } = await supabase.from('bookmarks').select('story_id').eq('user_id', user.id);
           if (alive && bookmarks) setSavedStories(bookmarks.map((item) => item.story_id));
+          if (alive) setCurrentUserId(user.id);
+          const { data: followRows } = await supabase.from('follows').select('followed_id').eq('follower_id', user.id);
+          if (alive && followRows) setFollowedIds(followRows.map((row) => row.followed_id));
         }
         const response = await fetch('/api/stories', { cache: 'no-store' });
         const payload = (await response.json()) as { stories?: CloudStory[] };
@@ -161,7 +169,7 @@ export default function HomePage() {
             const rawBody = chapters.flatMap((chapter) => [chapter.title, chapter.body]).filter((text): text is string => Boolean(text));
             const images = rawBody.flatMap((text: string) => Array.from(text.matchAll(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g), (match) => ({ src: match[2], alt: match[1] || 'Story illustration', caption: match[1] || 'A moment from the story' })));
             const body = rawBody.map((text: string) => text.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '').trim()).filter(Boolean);
-            return { id: item.id, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images, theories: [], audioLabel: 'Listen to the opening' };
+            return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: 0, comments: 0, reveal: 'Continue reading', progress: 50, body, images, theories: [], audioLabel: 'Listen to the opening' };
           });
           setPublishedStories((current) => [...cloudStories, ...current.filter((old) => !cloudStories.some((cloud) => cloud.id === old.id))]);
         }
@@ -202,6 +210,22 @@ export default function HomePage() {
   function showNotice(message: string) {
     setNotice(message);
     window.setTimeout(() => setNotice(''), 2600);
+  }
+
+  async function toggleFollow(story: MediaStory) {
+    const creatorId = story.authorId;
+    if (!creatorId) { showNotice('This sample story has no real author account to follow.'); return; }
+    if (followBusy) return;
+    const isFollowing = followedIds.includes(creatorId);
+    const restore = () => setFollowedIds((current) => isFollowing ? (current.includes(creatorId) ? current : [...current, creatorId]) : current.filter((id) => id !== creatorId));
+    setFollowBusy(true);
+    setFollowedIds((current) => isFollowing ? current.filter((id) => id !== creatorId) : [...current, creatorId]);
+    try {
+      const response = await fetch(isFollowing ? `/api/follows?creatorId=${encodeURIComponent(creatorId)}` : '/api/follows', isFollowing ? { method: 'DELETE' } : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ creatorId }) });
+      if (!response.ok) { const result = await response.json().catch(() => ({})); restore(); showNotice(result.error || 'Sign in to follow creators.'); return; }
+      showNotice(isFollowing ? `Unfollowed ${story.author}.` : `You are now following ${story.author}.`);
+    } catch { restore(); showNotice('Could not update follow. Please try again.'); }
+    finally { setFollowBusy(false); }
   }
 
   async function toggleSave(id: string) {
@@ -508,7 +532,7 @@ export default function HomePage() {
             <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'FICTION' ? 'pill-fiction' : ''}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>PART I · THE SETUP</span></div>
             <h1 className="reader-title">{selectedStory.title}</h1>
             <p className="reader-deck">{selectedStory.excerpt}</p>
-            <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div><button className="follow-button" onClick={() => showNotice('Following will be available when accounts are connected.')}>Follow <Plus size={13} /></button></div>
+            <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div>{!(currentUserId && selectedStory.authorId === currentUserId) && <button className={`follow-button${selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? ' is-following' : ''}`} aria-pressed={Boolean(selectedStory.authorId && followedIds.includes(selectedStory.authorId))} onClick={() => void toggleFollow(selectedStory)}>{selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? <>Following <Check size={13} /></> : <>Follow <Plus size={13} /></>}</button>}</div>
             <div className="reader-tools"><button className={`listen-button ${isSpeaking ? 'listening' : ''}`} onClick={toggleNarration}>{isSpeaking ? <Pause size={16} /> : <Headphones size={16} />}{isSpeaking ? 'Pause narration' : 'Listen to story'}<span><Volume2 size={13} /> browser audio</span></button><button className={`reader-save ${savedStories.includes(selectedStory.id) ? 'is-saved' : ''}`} onClick={() => toggleSave(selectedStory.id)}>{savedStories.includes(selectedStory.id) ? <Check size={16} /> : <Bookmark size={16} />}{savedStories.includes(selectedStory.id) ? 'Saved' : 'Save story'}</button></div>
             <div className="reader-body">{selectedStory.body.slice(0, 2).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
             <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} /><span className="gallery-caption">{image.caption}</span><span className="gallery-expand"><Plus size={16} /></span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>

@@ -5149,3 +5149,1132 @@ img {
   font-size: 10px;
   line-height: 1.5;
 }
+
+
+/* ==========================================================
+   Compact editorial navigation bar (Account, How it works)
+   One tidy row: logo · nav · profile. Labels and the stray
+   chevron are hidden; links and routes are unchanged.
+   ========================================================== */
+.editorial-sidebar {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 28px;
+  padding: 14px 0;
+}
+
+.editorial-sidebar-label,
+.editorial-profile-chevron,
+.editorial-profile small {
+  display: none;
+}
+
+.editorial-brand {
+  order: 1;
+}
+
+.editorial-nav {
+  order: 2;
+  flex: 1 1 auto;
+  justify-content: center;
+  gap: 4px 6px;
+}
+
+.editorial-nav-link {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: background .18s ease, color .18s ease;
+}
+
+.editorial-nav-link:hover {
+  background: #f4edf8;
+}
+
+.editorial-nav-link.active {
+  background: var(--lavender, #eee5f3);
+}
+
+.editorial-profile {
+  order: 3;
+}
+
+.editorial-profile strong {
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .editorial-profile {
+    order: 2;
+  }
+
+  .editorial-nav {
+    order: 3;
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .editorial-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .editorial-nav-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+/* Account card: closer to the nav, a little wider for the stories list */
+.account-card {
+  width: min(100%, 640px);
+  margin-top: 2.5rem;
+}
+
+
+/* ============================================================================
+   UNTOLD PREMIUM LAYER
+   Depth, motion and mobile polish. Purely visual: it only restyles existing
+   classes, adds no markup and changes no behaviour. Every animation is
+   disabled for people who prefer reduced motion (see the end of this block).
+   ============================================================================ */
+
+:root {
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --grad-brand: linear-gradient(135deg, #8d66b0 0%, #6b4192 52%, #55337a 100%);
+  --grad-text: linear-gradient(100deg, #6d3f98 0%, #a45fb8 45%, #d0709a 70%, #8a5bb5 100%);
+  --shadow-sm: 0 1px 2px rgba(49, 34, 55, .04), 0 6px 18px rgba(49, 34, 55, .05);
+  --shadow-md: 0 2px 4px rgba(49, 34, 55, .04), 0 14px 34px rgba(60, 38, 82, .10);
+  --shadow-lg: 0 4px 10px rgba(49, 34, 55, .05), 0 28px 64px rgba(60, 38, 82, .16);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #e4d3f1;
+  color: #3d2455;
+}
+
+a,
+button,
+summary,
+label[class],
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* ---------- Ambient background: slow drifting aurora ---------- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -25% -15%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 38% at 12% 8%, rgba(190, 150, 225, .26), transparent 70%),
+    radial-gradient(36% 34% at 88% 14%, rgba(255, 196, 170, .22), transparent 70%),
+    radial-gradient(40% 40% at 70% 90%, rgba(160, 190, 235, .20), transparent 72%),
+    radial-gradient(34% 34% at 6% 82%, rgba(235, 170, 205, .16), transparent 72%);
+  animation: aurora-drift 36s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(-2.5%, 3%, 0) scale(1.06) rotate(2deg);
+  }
+
+  100% {
+    transform: translate3d(3%, -2%, 0) scale(1.02) rotate(-2deg);
+  }
+}
+
+/* let the aurora show through page shells */
+.auth-shell,
+.creator-shell,
+.how-page-shell,
+.community-page,
+.app-shell {
+  background: transparent;
+}
+
+/* ---------- Glass, sticky header ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  padding-top: var(--safe-top);
+  background: rgba(251, 247, 242, .72);
+  -webkit-backdrop-filter: saturate(1.5) blur(18px);
+  backdrop-filter: saturate(1.5) blur(18px);
+  border-bottom: 1px solid rgba(121, 92, 145, .12);
+  transition: box-shadow .35s var(--ease-out), background .35s var(--ease-out);
+}
+
+.topbar .brand-lockup {
+  transition: transform .35s var(--ease-spring);
+}
+
+.brand-mark {
+  background: linear-gradient(145deg, #efe6f9, #e1d2f1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7), 0 6px 14px rgba(121, 92, 145, .18);
+  transition: transform .5s var(--ease-spring), box-shadow .3s;
+}
+
+/* live dot pulse */
+.live-dot {
+  position: relative;
+}
+
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: rgba(121, 92, 145, .35);
+  animation: live-pulse 2.4s ease-out infinite;
+}
+
+@keyframes live-pulse {
+  0% {
+    transform: scale(.5);
+    opacity: .9;
+  }
+
+  80%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* ---------- Headlines ---------- */
+.intro-block h1 em,
+.creator-lead+* em,
+h1 em,
+.how-page-hero h1 em {
+  background: var(--grad-text);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: text-sheen 9s ease-in-out infinite alternate;
+}
+
+@keyframes text-sheen {
+  from {
+    background-position: 0% 50%;
+  }
+
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+h1 {
+  text-wrap: balance;
+}
+
+/* ---------- Entrance choreography (uses translate/opacity so hover
+   transforms are never blocked) ---------- */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    translate: -16px 0;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    translate: 16px 0;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+    scale: .97;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+.intro-block>*,
+.how-page-hero>*,
+.creator-lead,
+.community-header>* {
+  animation: rise-in .8s var(--ease-out) both;
+}
+
+.intro-block>*:nth-child(1),
+.how-page-hero>*:nth-child(1) {
+  animation-delay: .04s;
+}
+
+.intro-block>*:nth-child(2),
+.how-page-hero>*:nth-child(2) {
+  animation-delay: .12s;
+}
+
+.intro-block>*:nth-child(3),
+.how-page-hero>*:nth-child(3) {
+  animation-delay: .2s;
+}
+
+.intro-block>*:nth-child(4),
+.how-page-hero>*:nth-child(4) {
+  animation-delay: .28s;
+}
+
+.left-sidebar {
+  animation: slide-in-left .8s var(--ease-out) .1s both;
+}
+
+.right-sidebar>* {
+  animation: slide-in-right .8s var(--ease-out) both;
+}
+
+.right-sidebar>*:nth-child(1) {
+  animation-delay: .25s;
+}
+
+.right-sidebar>*:nth-child(2) {
+  animation-delay: .38s;
+}
+
+.right-sidebar>*:nth-child(3) {
+  animation-delay: .5s;
+}
+
+.feed-tabs {
+  animation: rise-in .7s var(--ease-out) .25s both;
+}
+
+.story-row {
+  animation: rise-in .75s var(--ease-out) both;
+}
+
+.story-list>.story-row:nth-child(1) {
+  animation-delay: .30s;
+}
+
+.story-list>.story-row:nth-child(2) {
+  animation-delay: .38s;
+}
+
+.story-list>.story-row:nth-child(3) {
+  animation-delay: .46s;
+}
+
+.story-list>.story-row:nth-child(4) {
+  animation-delay: .54s;
+}
+
+.story-list>.story-row:nth-child(5) {
+  animation-delay: .62s;
+}
+
+.story-list>.story-row:nth-child(n+6) {
+  animation-delay: .70s;
+}
+
+.auth-card {
+  animation: pop-in .75s var(--ease-out) both;
+}
+
+.creator-main>* {
+  animation: rise-in .75s var(--ease-out) both;
+}
+
+.creator-main>*:nth-child(2) {
+  animation-delay: .07s;
+}
+
+.creator-main>*:nth-child(3) {
+  animation-delay: .14s;
+}
+
+.creator-main>*:nth-child(4) {
+  animation-delay: .21s;
+}
+
+.creator-aside>* {
+  animation: slide-in-right .75s var(--ease-out) both;
+}
+
+.creator-aside>*:nth-child(2) {
+  animation-delay: .1s;
+}
+
+.creator-aside>*:nth-child(3) {
+  animation-delay: .2s;
+}
+
+.how-step-card,
+.community-card,
+.community-note,
+.theory-card,
+.reveal-card,
+.ps-card,
+.account-story-item {
+  animation: pop-in .7s var(--ease-out) both;
+}
+
+.reader-article {
+  animation: rise-in .8s var(--ease-out) both;
+}
+
+/* ---------- Surfaces: depth + gentle lift ---------- */
+.right-widget,
+.explore-widget,
+.how-widget,
+.creator-aside-card,
+.community-card,
+.how-step-card,
+.theory-card,
+.ps-card,
+.account-story-item,
+.reveal-card,
+.sidebar-note {
+  box-shadow: var(--shadow-sm);
+  transition: transform .45s var(--ease-out), box-shadow .45s var(--ease-out), border-color .3s;
+}
+
+.auth-card {
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(121, 92, 145, .16);
+  background: linear-gradient(180deg, rgba(255, 253, 251, .94), rgba(255, 250, 247, .9));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.mood-options button {
+  transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out), background .25s;
+}
+
+/* ---------- Story rows ---------- */
+.story-row {
+  transition: background .35s var(--ease-out), box-shadow .35s var(--ease-out), padding .2s;
+}
+
+.story-row-cover {
+  transition: transform .55s var(--ease-out), box-shadow .55s var(--ease-out);
+  box-shadow: 0 8px 22px rgba(60, 38, 82, .10);
+}
+
+.story-row-cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, .6) 49%, transparent 66%);
+  transform: translateX(-130%);
+  transition: transform .9s var(--ease-out);
+}
+
+.row-bookmark {
+  transition: transform .3s var(--ease-spring), color .2s, background .2s;
+}
+
+.row-bookmark:active {
+  transform: scale(.82);
+}
+
+.row-read svg,
+.category-pill {
+  transition: transform .3s var(--ease-out);
+}
+
+/* ---------- Tabs ---------- */
+.feed-tabs button {
+  transition: color .25s var(--ease-out);
+}
+
+.feed-tabs button:hover {
+  color: #5e4373;
+}
+
+.feed-tabs button.tab-active::after {
+  transform-origin: left center;
+  animation: tab-underline .5s var(--ease-out) both;
+}
+
+@keyframes tab-underline {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---------- Navigation links ---------- */
+.sidebar-link {
+  position: relative;
+  transition: background .25s var(--ease-out), color .25s, transform .3s var(--ease-out);
+}
+
+.sidebar-link-active {
+  background: linear-gradient(90deg, #ece2f5, #f4edf8);
+  box-shadow: inset 3px 0 0 #7c58a0, 0 4px 14px rgba(121, 92, 145, .10);
+}
+
+.sidebar-link svg {
+  transition: transform .35s var(--ease-spring), color .25s;
+}
+
+/* ---------- Buttons: gradient, glow, shine, press ---------- */
+.publish-button,
+.creator-primary,
+.modal-primary,
+.auth-submit,
+.ps-btn-view {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--grad-brand);
+  border-color: transparent;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 8px 22px rgba(107, 65, 146, .32);
+  transition: transform .3s var(--ease-out), box-shadow .3s var(--ease-out), filter .3s;
+}
+
+.publish-button:hover,
+.creator-primary:hover,
+.modal-primary:hover,
+.auth-submit:hover,
+.ps-btn-view:hover {
+  background: var(--grad-brand);
+  filter: brightness(1.07) saturate(1.05);
+}
+
+.publish-button::before,
+.creator-primary::before,
+.modal-primary::before,
+.auth-submit::before,
+.ps-btn-view::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .38) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform .8s var(--ease-out);
+}
+
+.creator-secondary,
+.ps-btn-edit,
+.icon-button,
+.profile-button,
+.follow-button,
+.listen-button,
+.reader-save,
+.back-button {
+  transition: transform .3s var(--ease-out), box-shadow .3s var(--ease-out), background .25s, border-color .25s, color .25s;
+}
+
+.icon-button {
+  box-shadow: var(--shadow-sm);
+}
+
+/* press feedback everywhere (fingers + mouse) */
+button:not(:disabled):active,
+.creator-primary:active,
+.creator-secondary:active,
+.ps-btn:active,
+.sidebar-link:active,
+.profile-button:active,
+.icon-button:active {
+  transform: scale(.96);
+}
+
+.story-row-main:active .story-row-title {
+  color: #6b4192;
+}
+
+/* ---------- Inputs: focus glow ---------- */
+.creator-input,
+.creator-textarea,
+.publish-input,
+.publish-textarea,
+select {
+  transition: border-color .25s, box-shadow .3s var(--ease-out), background .25s, transform .3s var(--ease-out);
+}
+
+.creator-input:focus,
+.creator-textarea:focus,
+.publish-input:focus,
+.publish-textarea:focus,
+select:focus {
+  border-color: #a07cc4;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(150, 110, 190, .16), 0 8px 24px rgba(121, 92, 145, .10);
+}
+
+/* ---------- Overlays ---------- */
+.modal-backdrop,
+.lightbox-backdrop,
+.creator-preview-backdrop {
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+
+.modal-card,
+.creator-preview,
+.publish-modal {
+  animation: modal-spring .55s var(--ease-spring) both;
+  box-shadow: var(--shadow-lg);
+}
+
+@keyframes modal-spring {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast,
+.creator-toast {
+  animation: toast-spring .6s var(--ease-spring) both;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  bottom: calc(24px + var(--safe-bottom));
+}
+
+@keyframes toast-spring {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+    scale: .94;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+/* ---------- Mouse-only hover effects (never stick on touch) ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .topbar .brand-lockup:hover {
+    transform: scale(1.03);
+  }
+
+  .topbar .brand-lockup:hover .brand-mark {
+    transform: rotate(-8deg) scale(1.06);
+  }
+
+  .story-row:hover {
+    background: linear-gradient(90deg, rgba(238, 229, 243, .55), rgba(255, 253, 251, 0) 75%);
+    box-shadow: 0 1px 0 rgba(121, 92, 145, .06);
+  }
+
+  .story-row-main:hover .story-row-cover {
+    transform: translateY(-4px) rotate(-1.2deg);
+    box-shadow: 0 18px 38px rgba(60, 38, 82, .22);
+  }
+
+  .story-row-main:hover .story-row-cover::before {
+    transform: translateX(130%);
+  }
+
+  .story-row-main:hover .category-pill {
+    transform: translateY(-1px);
+  }
+
+  .right-widget:hover,
+  .explore-widget:hover,
+  .how-widget:hover,
+  .community-card:hover,
+  .how-step-card:hover,
+  .theory-card:hover,
+  .ps-card:hover,
+  .account-story-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(121, 92, 145, .22);
+  }
+
+  .mood-options button:hover {
+    transform: translateX(4px);
+    box-shadow: 0 10px 26px rgba(121, 92, 145, .14);
+  }
+
+  .sidebar-link:hover {
+    transform: translateX(3px);
+  }
+
+  .sidebar-link:hover svg {
+    transform: scale(1.12) rotate(-6deg);
+  }
+
+  .publish-button:hover,
+  .creator-primary:hover,
+  .modal-primary:hover,
+  .auth-submit:hover,
+  .ps-btn-view:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 14px 32px rgba(107, 65, 146, .42);
+  }
+
+  .publish-button:hover::before,
+  .creator-primary:hover::before,
+  .modal-primary:hover::before,
+  .auth-submit:hover::before,
+  .ps-btn-view:hover::before {
+    transform: translateX(120%);
+  }
+
+  .creator-secondary:hover,
+  .ps-btn-edit:hover,
+  .icon-button:hover,
+  .follow-button:hover,
+  .reader-save:hover,
+  .listen-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+/* ---------- Scroll-driven polish (progressive enhancement) ---------- */
+@supports (animation-timeline: scroll()) {
+  .topbar {
+    animation: topbar-elevate linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 140px;
+  }
+
+  @keyframes topbar-elevate {
+    from {
+      box-shadow: 0 0 0 rgba(49, 34, 55, 0);
+      background: rgba(251, 247, 242, .55);
+    }
+
+    to {
+      box-shadow: 0 10px 30px rgba(49, 34, 55, .09);
+      background: rgba(251, 247, 242, .88);
+    }
+  }
+
+  /* thin reading / scroll progress line */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 200;
+    pointer-events: none;
+    background: linear-gradient(90deg, #8d66b0, #d0709a, #8d66b0);
+    transform-origin: left center;
+    transform: scaleX(0);
+    animation: scroll-progress linear both;
+    animation-timeline: scroll(root);
+  }
+
+  @keyframes scroll-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* items further down the page ease in as they scroll into view */
+  .story-list>.story-row:nth-child(n+6),
+  .how-step-card:nth-child(n+4),
+  .community-card:nth-child(n+4),
+  .creator-main>*:nth-child(n+5) {
+    animation: reveal-on-scroll linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }
+
+  @keyframes reveal-on-scroll {
+    from {
+      opacity: 0;
+      translate: 0 28px;
+    }
+
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}
+
+/* ---------- Layout offsets now that the header is sticky ---------- */
+@media (min-width: 761px) {
+
+  .left-sidebar,
+  .right-sidebar {
+    top: 98px;
+  }
+}
+
+/* ---------- Mobile: floating glass dock + thumb-friendly polish ---------- */
+@media (max-width: 760px) {
+  .workspace-grid {
+    padding-bottom: calc(96px + var(--safe-bottom));
+  }
+
+  .left-sidebar {
+    position: fixed;
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + var(--safe-bottom));
+    z-index: 70;
+    width: auto;
+    padding: 6px;
+    gap: 2px;
+    border-radius: 22px;
+    border: 1px solid rgba(121, 92, 145, .16);
+    background: rgba(255, 252, 249, .78);
+    -webkit-backdrop-filter: saturate(1.6) blur(20px);
+    backdrop-filter: saturate(1.6) blur(20px);
+    box-shadow: 0 18px 44px rgba(49, 34, 55, .22), 0 2px 6px rgba(49, 34, 55, .06);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    animation: dock-in .8s var(--ease-spring) .35s both;
+  }
+
+  @keyframes dock-in {
+    from {
+      opacity: 0;
+      translate: 0 40px;
+    }
+
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  .left-sidebar .sidebar-link {
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-width: 66px;
+    min-height: 54px;
+    padding: 6px 8px;
+    border-radius: 16px;
+    font-size: 10px;
+    line-height: 1.1;
+    text-align: center;
+    scroll-snap-align: center;
+  }
+
+  .left-sidebar .sidebar-link svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .left-sidebar .sidebar-link-active {
+    box-shadow: none;
+    background: linear-gradient(160deg, #e8dcf4, #f3ebf9);
+  }
+
+  .left-sidebar .sidebar-count {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    margin: 0;
+    min-width: 16px;
+    height: 16px;
+    font-size: 9px;
+  }
+
+  .toast,
+  .creator-toast {
+    bottom: calc(96px + var(--safe-bottom));
+  }
+
+  /* roomier reading + tapping */
+  .story-row-main {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .story-row:active {
+    background: rgba(238, 229, 243, .5);
+  }
+
+  .story-row-cover {
+    box-shadow: 0 6px 16px rgba(60, 38, 82, .14);
+  }
+
+  .auth-card,
+  .how-step-card,
+  .community-card,
+  .ps-card,
+  .account-story-item {
+    border-radius: 20px;
+  }
+
+  .creator-input,
+  .creator-textarea,
+  .publish-input,
+  .publish-textarea,
+  select {
+    font-size: 16px;
+  }
+
+  /* stops iOS zooming into inputs */
+
+  .modal-backdrop,
+  .lightbox-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 24px 24px 0 0;
+    max-height: 92vh;
+    max-height: 92dvh;
+    overflow-y: auto;
+    padding-bottom: calc(20px + var(--safe-bottom));
+    animation: sheet-up .5s var(--ease-out) both;
+  }
+
+  @keyframes sheet-up {
+    from {
+      opacity: .6;
+      transform: translateY(70%);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .aurora-lite {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  body::before {
+    animation-duration: 48s;
+    /* calmer + cheaper on phones */
+  }
+}
+
+/* ---------- Respect reduced motion: nothing moves ---------- */
+@media (prefers-reduced-motion: reduce) {
+
+  body::before,
+  body::after,
+  .live-dot::after,
+  h1 em,
+  h2 em,
+  .intro-block h1 em {
+    animation: none !important;
+  }
+
+  .topbar,
+  .story-row,
+  .story-row *,
+  .left-sidebar,
+  .right-sidebar>*,
+  .creator-main>*,
+  .creator-aside>*,
+  .auth-card,
+  .how-step-card,
+  .community-card,
+  .theory-card,
+  .modal-card,
+  .toast {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+
+/* How it works: the shared nav bar already shows the logo, so drop the duplicate */
+.how-page-shell>.creator-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.how-page-shell>.creator-topbar .brand-lockup {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .editorial-sidebar {
+    padding-right: 2px;
+  }
+
+  .editorial-profile strong {
+    white-space: nowrap;
+  }
+}
+
+
+/* Write a story button: never wraps; becomes a tidy icon button on phones */
+.publish-button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.publish-button span {
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .publish-button {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  /* hide the label visually but keep it for screen readers */
+  .publish-button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    border: 0;
+    display: block;
+  }
+
+  .publish-button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .topbar-actions {
+    flex-shrink: 0;
+  }
+}
+
+
+/* Narrow phones: icon-only header actions so nothing is pushed off-screen */
+@media (max-width: 400px) {
+  .topbar {
+    padding-left: 14px;
+    padding-right: 14px;
+    gap: 8px;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .topbar-actions .profile-button {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+    border-radius: 12px;
+  }
+
+  .topbar-actions .profile-button span {
+    display: none;
+  }
+
+  .topbar-actions .icon-button {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+
+/* Follow button: followed state */
+.follow-button.is-following {
+  background: linear-gradient(160deg, #ece2f5, #f4edf8);
+  border-color: #d8c5e2;
+  color: #5e4373;
+}
+
+
+/* Creator Studio: give the Insert image row a little air above the editor */
+.creator-image-toolbar {
+  margin-bottom: 10px;
+}
+
+/* Part timing control: stack neatly on phones */
+@media (max-width: 560px) {
+  .reveal-setting {
+    flex-wrap: wrap;
+  }
+
+  .reveal-setting select {
+    flex: 1 1 100%;
+    width: 100%;
+    min-height: 44px;
+  }
+}

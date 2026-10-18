@@ -20,13 +20,13 @@ import { ArrowLeft, BookOpen, Check, ChevronDown, Clock3, Eye, FileText, ImagePl
 
 
 
-type Chapter = { id: string; title: string; body: string; reveal: 'now' | 'later' };
+type Chapter = { id: string; title: string; body: string; reveal: 'now' | 'later'; delayDays?: number; revealAt?: string };
 
 type Draft = { id: string; title: string; category: string; synopsis: string; coverUrl?: string; chapters: Chapter[]; updatedAt: string };
 
 type PublishedStory = { id: string; title: string; genre: string; synopsis: string | null; cover_url?: string | null; published_at: string | null; chapters?: { id: string }[] };
 
-type EditableChapterRow = { id: string; title: string | null; body: string | null; position: number; is_revealed: boolean };
+type EditableChapterRow = { id: string; title: string | null; body: string | null; position: number; is_revealed: boolean; reveal_at?: string | null };
 
 
 
@@ -166,7 +166,49 @@ function renderChapterBody(body: string) {
 
 
 
-const makeChapter = (n: number): Chapter => ({ id: `${Date.now()}-${n}`, title: n === 1 ? 'The setup' : `Part ${n}`, body: '', reveal: n === 1 ? 'now' : 'later' });
+const DAY_MS = 86_400_000;
+const MAX_DELAY_DAYS = 7;
+const clampDays = (n: number) => Math.min(MAX_DELAY_DAYS, Math.max(1, Math.round(n) || 1));
+const dayLabel = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
+
+// Later parts go live on their own. When a story is published, each later part is stored with
+// is_revealed = true and a real reveal_at time; the database only lets readers see it once that
+// time has passed. Drafts are never visible to readers, so a draft just remembers the chosen
+// delay as a tiny "1970 + N days" timestamp, which publishing replaces with the real release time.
+const delayMarker = (days: number) => new Date(clampDays(days) * DAY_MS).toISOString();
+
+function chapterFromRow(c: { id: string; title: string | null; body: string | null; is_revealed: boolean; reveal_at?: string | null }): Chapter {
+  const base = { id: c.id, title: c.title || '', body: c.body || '' };
+  const at = c.reveal_at ? Date.parse(c.reveal_at) : NaN;
+  if (c.is_revealed && (!Number.isFinite(at) || at <= Date.now())) return { ...base, reveal: 'now' };
+  if (c.is_revealed) return { ...base, reveal: 'later', revealAt: c.reveal_at as string, delayDays: clampDays(Math.ceil((at - Date.now()) / DAY_MS)) };
+  const isMarker = Number.isFinite(at) && at > 0 && at <= (MAX_DELAY_DAYS + 1) * DAY_MS;
+  return { ...base, reveal: 'later', delayDays: isMarker ? clampDays(at / DAY_MS) : 1 };
+}
+
+function chapterDbFields(c: Chapter, published: boolean): { is_revealed: boolean; reveal_at: string | null } {
+  if (c.reveal === 'now') return { is_revealed: true, reveal_at: null };
+  const days = clampDays(c.delayDays ?? 1);
+  if (!published) return { is_revealed: false, reveal_at: delayMarker(days) };
+  return { is_revealed: true, reveal_at: c.revealAt ?? new Date(Date.now() + days * DAY_MS).toISOString() };
+}
+
+// Gives every scheduled part its real release time (kept as-is if it already has one).
+const withReleaseTimes = (list: Chapter[]): Chapter[] => list.map((c) => c.reveal === 'later' && !c.revealAt ? { ...c, revealAt: chapterDbFields(c, true).reveal_at as string } : c);
+
+function revealCaption(c: Chapter) {
+  if (c.reveal === 'now') return 'Readers can read this part as soon as you publish.';
+  if (c.revealAt) return `Goes live automatically on ${new Date(c.revealAt).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.`;
+  return `Goes live automatically ${dayLabel(clampDays(c.delayDays ?? 1))} after you publish. Nothing else to do.`;
+}
+
+function revealBadge(c: Chapter) {
+  if (c.reveal === 'now') return 'AVAILABLE NOW';
+  const days = c.revealAt ? clampDays(Math.ceil((Date.parse(c.revealAt) - Date.now()) / DAY_MS)) : clampDays(c.delayDays ?? 1);
+  return `LIVE IN ${dayLabel(days).toUpperCase()}`;
+}
+
+const makeChapter = (n: number): Chapter => ({ id: `${Date.now()}-${n}`, title: n === 1 ? 'The setup' : `Part ${n}`, body: '', reveal: n === 1 ? 'now' : 'later', ...(n === 1 ? {} : { delayDays: Math.min(n - 1, MAX_DELAY_DAYS) }) });
 
 
 
@@ -232,9 +274,9 @@ export default function WritePage() {
 
         const hydrated: Draft[] = await Promise.all(rows.map(async (row) => {
 
-          const { data: chapterRows } = await supabase.from('chapters').select('id,title,body,is_revealed').eq('story_id', row.id).order('position');
+          const { data: chapterRows } = await supabase.from('chapters').select('id,title,body,is_revealed,reveal_at').eq('story_id', row.id).order('position');
 
-          return { id: row.id, title: row.title, category: row.genre, synopsis: row.synopsis ?? '', coverUrl: row.cover_url ?? '', updatedAt: row.updated_at, chapters: (chapterRows ?? []).map((c, i) => ({ id: c.id, title: c.title, body: c.body, reveal: c.is_revealed ? 'now' as const : 'later' as const })).concat((chapterRows ?? []).length ? [] : [makeChapter(1)]) };
+          return { id: row.id, title: row.title, category: row.genre, synopsis: row.synopsis ?? '', coverUrl: row.cover_url ?? '', updatedAt: row.updated_at, chapters: (chapterRows ?? []).map((c) => chapterFromRow(c)).concat((chapterRows ?? []).length ? [] : [makeChapter(1)]) };
 
         }));
 
@@ -278,9 +320,9 @@ export default function WritePage() {
 
       const { error: deleteError } = await supabase.from('chapters').delete().eq('story_id', storyId); if (deleteError) throw deleteError;
 
-      const chapterRows = chapters.map((c, i) => ({ story_id: storyId!, author_id: user.id, position: i + 1, title: c.title.trim() || `Part ${i + 1}`, body: c.body, is_revealed: c.reveal === 'now' }));
+      const isLive = activeStoryStatus === 'published'; const scheduledChapters = isLive ? withReleaseTimes(chapters) : chapters; const chapterRows = scheduledChapters.map((c, i) => ({ story_id: storyId!, author_id: user.id, position: i + 1, title: c.title.trim() || `Part ${i + 1}`, body: c.body, ...chapterDbFields(c, isLive) }));
 
-      const { error: chapterError } = await supabase.from('chapters').insert(chapterRows); if (chapterError) throw chapterError;
+      const { error: chapterError } = await supabase.from('chapters').insert(chapterRows); if (chapterError) throw chapterError; if (isLive) setChapters(scheduledChapters);
 
       const draft: Draft = { id: storyId!, title: title.trim(), category, synopsis: synopsis.trim(), coverUrl, chapters, updatedAt: new Date().toISOString() };
 
@@ -320,9 +362,9 @@ export default function WritePage() {
 
       const { error: deleteError } = await supabase.from('chapters').delete().eq('story_id', storyId); if (deleteError) throw deleteError;
 
-      const chapterRows = chapters.map((c, i) => ({ story_id: storyId!, author_id: user.id, position: i + 1, title: c.title.trim() || `Part ${i + 1}`, body: c.body, is_revealed: c.reveal === 'now' }));
+      const scheduledChapters = withReleaseTimes(chapters); const chapterRows = scheduledChapters.map((c, i) => ({ story_id: storyId!, author_id: user.id, position: i + 1, title: c.title.trim() || `Part ${i + 1}`, body: c.body, ...chapterDbFields(c, true) }));
 
-      const { error: chapterError } = await supabase.from('chapters').insert(chapterRows); if (chapterError) throw chapterError;
+      const { error: chapterError } = await supabase.from('chapters').insert(chapterRows); if (chapterError) throw chapterError; setChapters(scheduledChapters);
 
       setDrafts((current) => current.filter((item) => item.id !== storyId));
 
@@ -332,7 +374,7 @@ export default function WritePage() {
 
       setPublishedStories((refreshedPublished ?? []) as PublishedStory[]);
 
-      notify('Story published. It now appears in your Published Stories list.');
+      { const scheduledCount = chapters.filter((c) => c.reveal === 'later').length; notify(scheduledCount ? `Story published. ${scheduledCount} later ${scheduledCount === 1 ? 'part' : 'parts'} will go live automatically on schedule.` : 'Story published. It now appears in your Published Stories list.'); }
 
     } catch (error) { notify(error instanceof Error ? error.message : 'Could not publish story.'); }
 
@@ -354,7 +396,7 @@ export default function WritePage() {
 
       if (authError || !user) throw new Error('Please sign in again.');
 
-      const { data: row, error } = await supabase.from('stories').select('id,title,genre,synopsis,cover_url,status,chapters(id,title,body,position,is_revealed)').eq('id', story.id).eq('author_id', user.id).eq('status', 'published').single();
+      const { data: row, error } = await supabase.from('stories').select('id,title,genre,synopsis,cover_url,status,chapters(id,title,body,position,is_revealed,reveal_at)').eq('id', story.id).eq('author_id', user.id).eq('status', 'published').single();
 
       if (error) throw error;
 
@@ -362,7 +404,7 @@ export default function WritePage() {
 
       setActiveStoryId(row.id); setActiveStoryStatus('published'); setTitle(row.title); setCategory(row.genre || 'Mystery'); setSynopsis(row.synopsis || ''); setCoverUrl(row.cover_url || '');
 
-      setChapters(rows.length ? rows.map((c) => ({ id: c.id, title: c.title || '', body: c.body || '', reveal: c.is_revealed ? 'now' as const : 'later' as const })) : [makeChapter(1)]);
+      setChapters(rows.length ? rows.map((c) => chapterFromRow(c)) : [makeChapter(1)]);
 
       setActiveChapter(0); window.scrollTo({ top: 0, behavior: 'smooth' }); notify(`Loaded published story “${row.title}” for editing.`);
 
@@ -540,6 +582,8 @@ export default function WritePage() {
 
 
 
+  function setChapterTiming(value: string) { setChapters((all) => all.map((item, index) => index !== activeChapter ? item : value === 'now' ? { ...item, reveal: 'now' as const, revealAt: undefined } : { ...item, reveal: 'later' as const, delayDays: clampDays(Number(value)), revealAt: undefined })); }
+
   function updateChapter(key: 'title' | 'body' | 'reveal', value: string) { setChapters((all) => all.map((item, index) => index === activeChapter ? { ...item, [key]: value } : item)); }
 
 
@@ -570,7 +614,7 @@ export default function WritePage() {
 
         <div className="creator-step-heading creator-chapter-heading"><span>02</span><div><h2>Write the chapters</h2><p>Decide what readers learn now—and what stays hidden.</p></div></div>
 
-        <div className="chapter-tabs">{chapters.map((item, index) => <button key={item.id} className={activeChapter === index ? 'chapter-tab active' : 'chapter-tab'} onClick={() => setActiveChapter(index)}><FileText size={14} />{item.title || `Part ${index + 1}`}<span>{index + 1}</span></button>)}<button className="add-chapter" onClick={() => { const next = [...chapters, makeChapter(chapters.length + 1)]; setChapters(next); setActiveChapter(next.length - 1); }}><Plus size={15} /> Add part</button></div>
+        <div className="chapter-tabs">{chapters.map((item, index) => <button key={item.id} className={activeChapter === index ? 'chapter-tab active' : 'chapter-tab'} onClick={() => setActiveChapter(index)}><FileText size={14} />{item.title || `Part ${index + 1}`}{item.reveal === 'later' && <Clock3 size={12} aria-label="Scheduled" />}<span>{index + 1}</span></button>)}<button className="add-chapter" onClick={() => { const next = [...chapters, makeChapter(chapters.length + 1)]; setChapters(next); setActiveChapter(next.length - 1); }}><Plus size={15} /> Add part</button></div>
 
         {chapter && <div className="chapter-editor"><label className="creator-label" htmlFor="chapter-name">PART TITLE</label><input id="chapter-name" className="creator-input" value={chapter.title} onChange={(e) => updateChapter('title', e.target.value)} placeholder="The setup" maxLength={80} /><div className="creator-image-toolbar"><label className="creator-label body-label" htmlFor="chapter-body">THE STORY</label><label className={`creator-image-button ${uploadingImage ? 'is-disabled' : ''}`}><ImagePlus size={15} />{uploadingImage ? 'Uploading image…' : 'Insert image'}<input type="file" accept="image/*" disabled={uploadingImage} onChange={(event) => { void insertChapterImage(event.target.files?.[0]); event.currentTarget.value = ''; }} hidden /></label></div>
 
@@ -600,7 +644,7 @@ export default function WritePage() {
 
 
 
-          <div className="editor-foot"><span>{chapter.body.length.toLocaleString()} / 12,000 characters</span><span>Tip: end the part with a question, clue, or contradiction.</span></div><div className="reveal-setting"><div className="reveal-setting-icon"><Clock3 size={17} /></div><div className="reveal-setting-copy"><strong>When should this part appear?</strong><span>Reveal timing is a planning setting in this prototype.</span></div><select aria-label="Chapter reveal timing" value={chapter.reveal} onChange={(e) => updateChapter('reveal', e.target.value)}><option value="now">Available now</option><option value="later">Reveal later</option></select></div>{chapters.length > 1 && <button className="remove-chapter" onClick={() => { const next = chapters.filter((_, index) => index !== activeChapter); setChapters(next); setActiveChapter(Math.max(0, activeChapter - 1)); }}><Trash2 size={14} /> Remove this part</button>}</div>}
+          <div className="editor-foot"><span>{chapter.body.length.toLocaleString()} / 12,000 characters</span><span>Tip: end the part with a question, clue, or contradiction.</span></div><div className="reveal-setting"><div className="reveal-setting-icon"><Clock3 size={17} /></div><div className="reveal-setting-copy"><strong>When should this part go live?</strong><span>{revealCaption(chapter)}</span></div><select aria-label="When this part goes live" value={chapter.reveal === 'now' ? 'now' : String(clampDays(chapter.delayDays ?? 1))} onChange={(e) => setChapterTiming(e.target.value)}><option value="now">Available now</option><optgroup label="Post automatically after publishing">{[1, 2, 3, 4, 5, 6, 7].map((day) => <option key={day} value={String(day)}>In {dayLabel(day)}</option>)}</optgroup></select></div>{chapters.length > 1 && <button className="remove-chapter" onClick={() => { const next = chapters.filter((_, index) => index !== activeChapter); setChapters(next); setActiveChapter(Math.max(0, activeChapter - 1)); }}><Trash2 size={14} /> Remove this part</button>}</div>}
 
         <div className="creator-actions"><button className="creator-secondary" onClick={() => setPreview(true)}><Eye size={16} /> Preview</button><button className="creator-secondary" disabled={busy} onClick={saveDraft}><Save size={16} /> Save draft</button><button className="creator-primary" disabled={busy} onClick={publishStory}><Send size={16} /> {busy ? 'Saving…' : 'Publish story'}</button></div>
 
@@ -652,7 +696,7 @@ export default function WritePage() {
 
     {notice && <div className="creator-toast" role="status"><Check size={16} />{notice}</div>}
 
-    {preview && <div className="creator-preview-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) setPreview(false); }}><section className="creator-preview" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button className="preview-close" onClick={() => setPreview(false)}>×</button><p className="creator-label">STORY PREVIEW · NOT PUBLISHED</p><span className="preview-genre">{category.toUpperCase()}</span><h2 id="preview-title">{title || 'Your story title'}</h2><p className="preview-synopsis">{synopsis || 'Your short teaser will appear here.'}</p>{chapters.map((item, index) => <section className={`preview-part ${item.reveal === 'later' ? 'preview-part-locked' : ''}`} key={item.id}><p className="creator-label">PART {String(index + 1).padStart(2, '0')} · {item.reveal === 'later' ? 'REVEAL LATER' : 'AVAILABLE NOW'}</p><h3>{item.title || `Part ${index + 1}`}</h3>{item.reveal === 'later' ? <><div className="preview-locked-copy" aria-label="Chapter content hidden until reveal"><div className="preview-chapter-content">
+    {preview && <div className="creator-preview-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) setPreview(false); }}><section className="creator-preview" role="dialog" aria-modal="true" aria-labelledby="preview-title"><button className="preview-close" onClick={() => setPreview(false)}>×</button><p className="creator-label">STORY PREVIEW · NOT PUBLISHED</p><span className="preview-genre">{category.toUpperCase()}</span><h2 id="preview-title">{title || 'Your story title'}</h2><p className="preview-synopsis">{synopsis || 'Your short teaser will appear here.'}</p>{chapters.map((item, index) => <section className={`preview-part ${item.reveal === 'later' ? 'preview-part-locked' : ''}`} key={item.id}><p className="creator-label">PART {String(index + 1).padStart(2, '0')} · {revealBadge(item)}</p><h3>{item.title || `Part ${index + 1}`}</h3>{item.reveal === 'later' ? <><div className="preview-locked-copy" aria-label="Chapter content hidden until reveal"><div className="preview-chapter-content">
 
       {renderChapterBody(
 
