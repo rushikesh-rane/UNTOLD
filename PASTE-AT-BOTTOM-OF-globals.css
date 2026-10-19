@@ -1,0 +1,33 @@
+/* Story rows hold up at high browser zoom and in narrower windows: meta chips (e.g. "10 min read",
+   "Part 2 reveals in 4 days") stay on one line each and wrap between chips, and the title and cover
+   shrink a little instead of crowding the row. Phones keep their own sizes. */
+.story-row-meta {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.story-row-meta > * {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (min-width: 761px) and (max-width: 1439px) {
+  .workspace-grid .story-row-title {
+    font-size: clamp(22px, 2.15vw, 30px);
+    line-height: 1.22;
+    text-wrap: balance;
+  }
+
+  /* when the author wraps onto its own line, a leftover divider looks stray */
+  .workspace-grid .story-row-author {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .workspace-grid .story-row-cover {
+    flex-basis: clamp(88px, 7.4vw, 112px);
+    width: clamp(88px, 7.4vw, 112px);
+    height: auto;
+    aspect-ratio: 112 / 142;
+  }
+}
