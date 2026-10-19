@@ -4172,3 +4172,194 @@ body {
   font-size: 11px;
   color: var(--muted, #756b80);
 }
+
+/* UNTOLD Discover layout recovery — APPEND this file to the END of app/globals.css.
+   This is a targeted override; do not replace your existing stylesheet with it. */
+
+@media (min-width: 1201px) {
+  .topbar {
+    height: 92px !important;
+    min-height: 92px !important;
+    box-sizing: border-box;
+    padding-left: clamp(28px, 4.3vw, 82px) !important;
+    padding-right: clamp(28px, 4.3vw, 82px) !important;
+  }
+
+  .workspace-grid {
+    width: min(calc(100% - 160px), 1740px) !important;
+    max-width: 1740px !important;
+    margin: 0 auto !important;
+    display: grid !important;
+    grid-template-columns: 230px minmax(0, 1fr) 352px !important;
+    column-gap: 46px !important;
+    align-items: start;
+    box-sizing: border-box;
+  }
+
+  .workspace-grid .intro-block {
+    min-width: 0;
+    padding-top: 42px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .workspace-grid .intro-block h1 {
+    font-size: clamp(54px, 3.5vw, 66px) !important;
+    line-height: 1.04 !important;
+    letter-spacing: -1.8px !important;
+    margin: 18px 0 13px !important;
+  }
+
+  .workspace-grid .intro-copy {
+    font-size: 14px !important;
+    line-height: 1.75 !important;
+  }
+
+  .left-sidebar {
+    min-width: 0;
+    padding-top: 28px !important;
+  }
+
+  .right-sidebar {
+    min-width: 0;
+    width: auto !important;
+    padding-top: 28px !important;
+  }
+
+  .right-widget {
+    min-width: 0;
+    padding: 22px !important;
+    box-sizing: border-box;
+  }
+
+  .right-widget h3 {
+    font-size: 25px !important;
+    line-height: 1.25 !important;
+  }
+
+  .workspace-grid .feed-toolbar,
+  .workspace-grid .feed-tabs,
+  .workspace-grid .story-row,
+  .workspace-grid .story-row-main,
+  .workspace-grid .story-row-copy {
+    min-width: 0;
+  }
+
+  .workspace-grid .story-row-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px !important;
+    padding: 24px 8px 24px 0 !important;
+  }
+
+  .workspace-grid .story-row-cover {
+    flex: 0 0 122px !important;
+    width: 122px !important;
+    height: 156px !important;
+    object-fit: cover;
+    border-radius: 7px;
+  }
+
+  .workspace-grid .story-row-copy {
+    flex: 1 1 auto;
+    overflow-wrap: anywhere;
+  }
+
+  .workspace-grid .story-row-title {
+    font-size: clamp(28px, 2.05vw, 36px) !important;
+    line-height: 1.2 !important;
+    letter-spacing: -.45px !important;
+    margin: 10px 0 6px !important;
+  }
+
+  .workspace-grid .story-row-excerpt {
+    max-width: 64ch;
+    font-size: 13px !important;
+    line-height: 1.65 !important;
+  }
+
+  .workspace-grid .story-row-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px !important;
+    font-size: 11px !important;
+  }
+
+  .workspace-grid .story-row-bottom {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px !important;
+    margin-top: 14px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1200px) {
+  .workspace-grid {
+    width: calc(100% - 48px) !important;
+    margin: 0 auto !important;
+    grid-template-columns: 190px minmax(0, 1fr) 280px !important;
+    column-gap: 24px !important;
+  }
+
+  .workspace-grid .intro-block {
+    padding-top: 32px !important;
+  }
+
+  .workspace-grid .intro-block h1 {
+    font-size: clamp(42px, 4.2vw, 54px) !important;
+    line-height: 1.05 !important;
+  }
+
+  .workspace-grid .story-row-main {
+    gap: 16px !important;
+  }
+
+  .workspace-grid .story-row-cover {
+    flex-basis: 104px !important;
+    width: 104px !important;
+    height: 136px !important;
+  }
+
+  .workspace-grid .story-row-title {
+    font-size: clamp(24px, 2.7vw, 32px) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace-grid {
+    width: calc(100% - 28px) !important;
+    margin: 0 auto !important;
+    display: block !important;
+  }
+
+  .workspace-grid .intro-block {
+    padding-top: 24px !important;
+  }
+
+  .workspace-grid .intro-block h1 {
+    font-size: clamp(38px, 10vw, 54px) !important;
+    line-height: 1.05 !important;
+  }
+
+  .workspace-grid .right-sidebar {
+    display: none;
+  }
+
+  .workspace-grid .story-row-main {
+    gap: 13px !important;
+    padding: 18px 4px 18px 0 !important;
+  }
+
+  .workspace-grid .story-row-cover {
+    flex: 0 0 104px !important;
+    width: 104px !important;
+    height: 138px !important;
+  }
+
+  .workspace-grid .story-row-title {
+    font-size: clamp(20px, 4.5vw, 27px) !important;
+    line-height: 1.2 !important;
+  }
+}
