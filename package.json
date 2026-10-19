@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:reader": "node --experimental-strip-types scripts/test-reader.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

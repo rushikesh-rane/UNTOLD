@@ -231,6 +231,8 @@ export default function HomePage() {
     if (!id) return;
     const target = publishedStories.find((story) => story.id === id);
     if (target) void openStory(target);
+    // Runs once, guarded by deepLinkHandled, so openStory (re-created every render) is deliberately not a dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storiesLoaded, publishedStories]);
   const filteredStories = useMemo(() => allStories.filter((story) => {
     const haystack = `${story.title} ${story.excerpt} ${story.category} ${story.category === 'REAL LIFE' ? '' : 'fiction'} ${story.author} ${story.body.join(' ')}`.toLowerCase();

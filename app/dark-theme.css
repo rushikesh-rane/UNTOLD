@@ -45,15 +45,6 @@ html[data-theme='dark'] .footer-brand i {
   color: #b597d1;
 }
 
-html[data-theme='dark'] .topbar-note {
-  color: #aba5af;
-}
-
-html[data-theme='dark'] .live-dot {
-  background: #8f72a2;
-  box-shadow: 0 0 0 4px rgba(181, 151, 201, 0.112);
-}
-
 html[data-theme='dark'] .profile-button {
   border: 1px solid transparent;
   background: transparent;
@@ -115,7 +106,6 @@ html[data-theme='dark'] .eyebrow>span:first-child {
 }
 
 html[data-theme='dark'] .intro-block h1 em,
-html[data-theme='dark'] .feed-heading h2 em,
 html[data-theme='dark'] .media-heading h2 em,
 html[data-theme='dark'] .theory-heading h2 em,
 html[data-theme='dark'] .reader-title em,
@@ -129,10 +119,6 @@ html[data-theme='dark'] .intro-copy {
 
 html[data-theme='dark'] .muted-eyebrow {
   color: #a9a1ad;
-}
-
-html[data-theme='dark'] .story-count {
-  color: #a49ea7;
 }
 
 html[data-theme='dark'] .feed-toolbar {
@@ -152,49 +138,6 @@ html[data-theme='dark'] .feed-tabs button.tab-active:after {
   background: #85659b;
 }
 
-html[data-theme='dark'] .toolbar-note {
-  color: #a49ea7;
-}
-
-html[data-theme='dark'] .toolbar-note svg {
-  color: #b89ccb;
-}
-
-html[data-theme='dark'] .story-row {
-  border-bottom: 1px solid #35323a;
-}
-
-html[data-theme='dark'] .story-row:hover {
-  background: #1c1b21;
-}
-
-html[data-theme='dark'] .story-row-main {
-  background: transparent;
-}
-
-html[data-theme='dark'] .story-row-cover {
-  border: 1px solid rgba(203, 173, 228, 0.14);
-  background: linear-gradient(145deg, #312438 0%, #252329 52%, #2c2a30 100%);
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.134);
-}
-
-html[data-theme='dark'] .story-cover-fallback {
-  color: #c2a6d6;
-}
-
-html[data-theme='dark'] .story-row-cover.cover-load-failed::after {
-  color: #c2a6d6;
-  background: linear-gradient(145deg, #312438 0%, #252329 52%, #2c2a30 100%);
-}
-
-html[data-theme='dark'] .story-index {
-  color: #9e94a6;
-}
-
-html[data-theme='dark'] .story-row-meta {
-  color: #a6a1aa;
-}
-
 html[data-theme='dark'] .category-pill {
   background: #28262c;
   color: #c7adda;
@@ -203,26 +146,6 @@ html[data-theme='dark'] .category-pill {
 html[data-theme='dark'] .pill-fiction {
   background: #29272d;
   color: #a3c0b4;
-}
-
-html[data-theme='dark'] .story-row-author {
-  border-left: 1px solid #38353d;
-}
-
-html[data-theme='dark'] .story-row-main:hover .story-row-title {
-  color: #cbace3;
-}
-
-html[data-theme='dark'] .story-row-excerpt {
-  color: #b6b1bc;
-}
-
-html[data-theme='dark'] .story-row-bottom {
-  color: #a6a1aa;
-}
-
-html[data-theme='dark'] .row-read {
-  color: #ccaee3 !important;
 }
 
 html[data-theme='dark'] .row-bookmark {
@@ -363,11 +286,6 @@ html[data-theme='dark'] .gallery-caption {
   color: #ffffff;
 }
 
-html[data-theme='dark'] .gallery-expand {
-  background: rgba(28, 27, 33, 0.851);
-  color: #d3c3dc;
-}
-
 html[data-theme='dark'] .gallery-hint {
   color: #a49ea6;
 }
@@ -453,10 +371,6 @@ html[data-theme='dark'] .theory-votes button {
 
 html[data-theme='dark'] .theory-votes button:hover {
   color: #c8abe0;
-}
-
-html[data-theme='dark'] .own-label {
-  color: #c1a3d6;
 }
 
 html[data-theme='dark'] .toast {
@@ -602,69 +516,8 @@ html[data-theme='dark'] .widget-heading svg {
   color: #b69dc7;
 }
 
-html[data-theme='dark'] .featured-widget {
-  background: linear-gradient(150deg, #1c1b21 35%, #252329);
-  border-color: #3a303d;
-}
-
-html[data-theme='dark'] .featured-kicker {
-  color: #a79ead;
-}
-
-html[data-theme='dark'] .featured-story-title {
-  background: transparent;
-  color: #dcd3e1;
-}
-
-html[data-theme='dark'] .featured-story-title svg {
-  color: #bda4d1;
-}
-
 html[data-theme='dark'] .widget-copy {
   color: #afa7b3;
-}
-
-html[data-theme='dark'] .widget-action {
-  background: transparent;
-  color: #ccace4;
-}
-
-html[data-theme='dark'] .theory-widget h3 {
-  color: #d2c8d7;
-}
-
-html[data-theme='dark'] .mini-theory {
-  border-top: 1px solid #2f2d35;
-  background: transparent;
-}
-
-html[data-theme='dark'] .mini-theory-avatar {
-  background: #302436;
-  color: #c8abe0;
-}
-
-html[data-theme='dark'] .mini-theory strong {
-  color: #c8b9d1;
-}
-
-html[data-theme='dark'] .mini-theory>span:last-child>span {
-  color: #b0a9b5;
-}
-
-html[data-theme='dark'] .mini-theory:hover strong {
-  color: #ccabe3;
-}
-
-html[data-theme='dark'] .weekly-widget {
-  background: #242228;
-}
-
-html[data-theme='dark'] .weekly-widget p {
-  color: #ccbfd4;
-}
-
-html[data-theme='dark'] .widget-signoff {
-  color: #ad9db6;
 }
 
 html[data-theme='dark'] body {
@@ -713,14 +566,6 @@ html[data-theme='dark'] .sidebar-link:hover {
   background: #2d2234;
 }
 
-html[data-theme='dark'] .story-row {
-  border-color: #35333b;
-}
-
-html[data-theme='dark'] .story-row:hover {
-  background: #1c1b21;
-}
-
 html[data-theme='dark'] .category-pill {
   background: #33223b;
   color: #cea8f2;
@@ -731,14 +576,6 @@ html[data-theme='dark'] .pill-fiction {
   background: #172836;
   color: #8ebee6;
   border-color: #223645;
-}
-
-html[data-theme='dark'] .story-row-title {
-  color: #e3dbeb;
-}
-
-html[data-theme='dark'] .row-read {
-  color: #ccaaf3;
 }
 
 html[data-theme='dark'] .right-widget {
@@ -1207,24 +1044,6 @@ html[data-theme='dark'] .preview-locked-overlay>span:last-child {
   color: #b2a4b7;
 }
 
-html[data-theme='dark'] .reader-locked-part {
-  border: 1px solid #403348;
-  background: linear-gradient(145deg, #1c1b21, #291f2e);
-}
-
-html[data-theme='dark'] .reader-locked-part h3 {
-  color: #e1d7e9;
-}
-
-html[data-theme='dark'] .reader-locked-message {
-  background: linear-gradient(180deg, rgba(35, 33, 40, 0) 0%, rgba(35, 33, 40, 0.929) 28%, #232128 100%);
-  color: #cface8;
-}
-
-html[data-theme='dark'] .reader-locked-message span {
-  color: #b2a4b7;
-}
-
 html[data-theme='dark'] .auth-shell {
   background: var(--paper, #121116);
   color: var(--ink, #e1dbe6);
@@ -1313,10 +1132,6 @@ html[data-theme='dark'] .community-page {
 
 html[data-theme='dark'] .community-header {
   border-bottom: 1px solid #333139;
-}
-
-html[data-theme='dark'] .community-brand {
-  color: #d6d9fa;
 }
 
 html[data-theme='dark'] .community-back {
@@ -1522,15 +1337,10 @@ html[data-theme='dark'] .story-image-delete:hover {
   background: #cd2948;
 }
 
-html[data-theme='dark'] .reader-profile-link:hover strong,
 html[data-theme='dark'] .theory-profile-link:hover strong,
 html[data-theme='dark'] .community-note-author:hover strong,
 html[data-theme='dark'] .public-person-row h3 a:hover {
   color: #cea5ed;
-}
-
-html[data-theme='dark'] .reader-profile-link span {
-  color: #a8a1ac;
 }
 
 html[data-theme='dark'] .public-profile-joined {
@@ -1759,10 +1569,6 @@ html[data-theme='dark'] .brand-mark {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.084), 0 6px 14px rgba(180, 150, 207, 0.198);
 }
 
-html[data-theme='dark'] .live-dot::after {
-  background: rgba(180, 150, 207, 0.402);
-}
-
 html[data-theme='dark'] .intro-block h1 em,
 html[data-theme='dark'] .creator-lead+* em,
 html[data-theme='dark'] h1 em,
@@ -1793,14 +1599,6 @@ html[data-theme='dark'] .auth-card {
   box-shadow: var(--shadow-lg);
   border-color: rgba(199, 171, 224, 0.16);
   background: linear-gradient(180deg, rgba(28, 27, 33, 0.94), rgba(28, 27, 33, 0.9));
-}
-
-html[data-theme='dark'] .story-row-cover {
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.21);
-}
-
-html[data-theme='dark'] .story-row-cover::before {
-  background: linear-gradient(115deg, transparent 32%, rgba(28, 27, 33, 0.6) 49%, transparent 66%);
 }
 
 html[data-theme='dark'] .feed-tabs button:hover {
@@ -1842,10 +1640,6 @@ html[data-theme='dark'] .icon-button {
   box-shadow: var(--shadow-sm);
 }
 
-html[data-theme='dark'] .story-row-main:active .story-row-title {
-  color: #d4adff;
-}
-
 html[data-theme='dark'] .creator-input:focus,
 html[data-theme='dark'] .creator-textarea:focus,
 html[data-theme='dark'] .publish-input:focus,
@@ -1863,14 +1657,6 @@ html[data-theme='dark'] .publish-modal {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  html[data-theme='dark'] .story-row:hover {
-    background: linear-gradient(90deg, rgba(48, 36, 54, 0.55), rgba(28, 27, 33, 0) 75%);
-    box-shadow: 0 1px 0 rgba(180, 150, 207, 0.066);
-  }
-
-  html[data-theme='dark'] .story-row-main:hover .story-row-cover {
-    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.438);
-  }
 
   html[data-theme='dark'] .right-widget:hover,
   html[data-theme='dark'] .explore-widget:hover,
@@ -1936,14 +1722,6 @@ html[data-theme='dark'] .publish-modal {
 
   html[data-theme='dark'] .left-sidebar .sidebar-link-active {
     background: linear-gradient(160deg, #362842, #2b2032);
-  }
-
-  html[data-theme='dark'] .story-row:active {
-    background: rgba(48, 36, 54, 0.5);
-  }
-
-  html[data-theme='dark'] .story-row-cover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.286);
   }
 
 }
@@ -2034,10 +1812,6 @@ html[data-theme='dark'] .reveal-countdown.is-next {
 html[data-theme='dark'] .reveal-refresh {
   background: #c7abe0;
   color: #1e1c22;
-}
-
-html[data-theme='dark'] .story-row-reveal {
-  color: #c7abe0;
 }
 
 html[data-theme='dark'] {

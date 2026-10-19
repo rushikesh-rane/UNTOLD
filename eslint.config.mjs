@@ -13,6 +13,13 @@ const compat = new FlatCompat({
 
 export default defineConfig([
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  {
+    rules: {
+      // Cover and story images come from user-uploaded Supabase Storage URLs, which next/image
+      // can't optimise without a fixed remote-host list, so plain <img> is intentional here.
+      '@next/next/no-img-element': 'off',
+    },
+  },
   globalIgnores([
     '.next/**',
     'out/**',
