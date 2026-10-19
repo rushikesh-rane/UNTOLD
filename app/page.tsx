@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { type Story } from '@/lib/stories';
 import { createClient } from '@/lib/supabase/client';
-import { buildReaderParts, buildUpcomingParts, countdownLabel, formatRevealDate, partsToPlainText, type ReaderPart, type UpcomingPart } from '@/lib/reader';
+import { buildReaderParts, buildUpcomingParts, countdownLabel, formatRevealDate, isRecentlyPublished, partsToPlainText, type ReaderPart, type UpcomingPart } from '@/lib/reader';
 import ThemeToggle from '@/components/ThemeToggle';
 import { StoryListSkeleton, TheorySkeleton } from '@/components/Skeletons';
 
@@ -33,6 +33,7 @@ type CloudStory = {
   title: string;
   synopsis: string | null;
   cover_url?: string | null;
+  published_at?: string | null;
   author?: CloudAuthor | CloudAuthor[] | null;
   profiles?: CloudAuthor | CloudAuthor[] | null;
   chapters?: CloudChapter[] | null;
@@ -64,6 +65,7 @@ type Theory = { id: string; userId?: string; author: string; text: string; votes
 type MediaStory = Story & {
   authorId?: string;
   coverUrl?: string;
+  publishedAt?: string;
   body: string[];
   /** Every released chapter, in order. This is what the reader renders. */
   parts: ReaderPart[];
@@ -94,7 +96,7 @@ function mapCloudStory(item: CloudStory): MediaStory {
   const { parts, images } = buildReaderParts(item.chapters ?? []);
   const upcoming = buildUpcomingParts(item.upcoming);
   const body = parts.flatMap((part) => part.paragraphs);
-  return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 50, body, parts, upcoming, images, theories: [], audioLabel: 'Listen to the opening' };
+  return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 0, publishedAt: item.published_at || undefined, body, parts, upcoming, images, theories: [], audioLabel: 'Listen to the opening' };
 }
 
 function Avatar({ initials, color }: { initials: string; color: string }) {
@@ -219,7 +221,7 @@ export default function HomePage() {
     const haystack = `${story.title} ${story.excerpt} ${story.category} ${story.author} ${story.body.join(' ')}`.toLowerCase();
     const matchesSearch = haystack.includes(searchTerm.toLowerCase());
     const isTrending = story.predictions + story.comments > 0;
-    const matchesTab = activeTab === 'For you' || (activeTab === 'Trending' ? isTrending : activeTab === 'New' ? story.progress < 60 : true);
+    const matchesTab = activeTab === 'For you' || (activeTab === 'Trending' ? isTrending : activeTab === 'New' ? isRecentlyPublished(story.publishedAt) : true);
     const matchesSaved = activeNav !== 'Reading list' || savedStories.includes(story.id);
     return matchesSearch && matchesTab && matchesSaved;
   }).sort((a, b) => activeTab === 'Trending' ? (b.predictions + b.comments) - (a.predictions + a.comments) : 0), [allStories, activeTab, activeNav, savedStories, searchTerm]);
@@ -629,7 +631,7 @@ export default function HomePage() {
                 <span className="reveal-status">{countdown.ready ? 'LIVE' : 'REVEAL PENDING'}</span>
               </div>;
             })}</section> : null}
-            <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} loading="lazy" decoding="async" /><span className="gallery-caption">{image.caption}</span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section>
+            {selectedStory.images.length ? <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} loading="lazy" decoding="async" /><span className="gallery-caption">{image.caption}</span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section> : null}
             <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{discussionLoading && !selectedStory.theories.length ? <TheorySkeleton /> : null}{selectedStory.theories.map((theory) => {
               const liked = Boolean(likedTheories[theory.id]);
               const isReplying = replyingTo === theory.id;

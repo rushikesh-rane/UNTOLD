@@ -109,3 +109,14 @@ export function formatRevealDate(revealAt: string, locale?: string): string {
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleString(locale, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 }
+
+/** A story counts as "new" for two weeks after it was published. */
+export const NEW_STORY_DAYS = 14;
+
+export function isRecentlyPublished(publishedAt: string | null | undefined, now: Date = new Date()): boolean {
+  if (!publishedAt) return false;
+  const at = Date.parse(publishedAt);
+  if (Number.isNaN(at)) return false;
+  const age = now.getTime() - at;
+  return age >= 0 && age < NEW_STORY_DAYS * 24 * 60 * 60 * 1000;
+}

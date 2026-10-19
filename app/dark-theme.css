@@ -1925,10 +1925,6 @@ html[data-theme='dark'] .publish-modal {
     }
   }
 
-  html[data-theme='dark'] body::after {
-    background: linear-gradient(90deg, #8760aa, #c3648e, #8760aa);
-  }
-
 }
 
 @media (max-width: 760px) {
@@ -2042,4 +2038,8 @@ html[data-theme='dark'] .reveal-refresh {
 
 html[data-theme='dark'] .story-row-reveal {
   color: #c7abe0;
+}
+
+html[data-theme='dark'] {
+  --focus-ring: #d9bff0;
 }

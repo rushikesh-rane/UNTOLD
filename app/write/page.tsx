@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
 
 import { createClient } from '@/lib/supabase/client';
+import { errorText, prepareImage, randomFileId } from '@/lib/image-upload';
 
 import { ArrowLeft, BookOpen, Check, ChevronDown, Clock3, Eye, FileText, ImagePlus, LoaderCircle, Plus, Save, Send, Sparkles, Trash2 } from 'lucide-react';
 
@@ -211,30 +212,6 @@ function revealBadge(c: Chapter) {
 const makeChapter = (n: number): Chapter => ({ id: `${Date.now()}-${n}`, title: n === 1 ? 'The setup' : `Part ${n}`, body: '', reveal: n === 1 ? 'now' : 'later', ...(n === 1 ? {} : { delayDays: Math.min(n - 1, MAX_DELAY_DAYS) }) });
 
 
-
-const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-
-// Covers only show as small thumbnails, so shrink big photos in the browser before uploading:
-// faster upload, smaller files, quicker pages. GIFs are left alone so animation survives.
-async function shrinkCover(file: File): Promise<{ blob: Blob; ext: string }> {
-  const original = { blob: file as Blob, ext: (file.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg') };
-  if (file.type === 'image/gif') return original;
-  try {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 1200 / Math.max(bitmap.width, bitmap.height));
-    if (scale === 1 && file.size < 400 * 1024) { bitmap.close(); return original; }
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.round(bitmap.width * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) { bitmap.close(); return original; }
-    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close();
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', 0.86));
-    if (blob && blob.type === 'image/webp' && blob.size < file.size) return { blob, ext: 'webp' };
-  } catch { /* Fall back to the original file. */ }
-  return original;
-}
 
 export default function WritePage() {
 
@@ -477,17 +454,17 @@ export default function WritePage() {
 
   async function uploadCover(file?: File) {
     if (!file) return;
-    if (!COVER_TYPES.includes(file.type)) { notify('Use a JPG, PNG, WebP or GIF image.'); return; }
-    if (file.size > 5 * 1024 * 1024) { notify('Images must be 5 MB or smaller.'); return; }
     setUploadingCover(true);
     try {
       const supabase = createClient();
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) throw new Error('Sign in before adding a cover.');
-      const upload = await shrinkCover(file);
-      const path = `${user.id}/covers/${crypto.randomUUID()}.${upload.ext}`;
+      // Reads the real format, converts phone photos (incl. HEIC where the browser can open them),
+      // and shrinks to a cover-sized WebP/JPEG before the 5 MB bucket limit is checked.
+      const upload = await prepareImage(file, { maxSide: 1200 });
+      const path = `${user.id}/covers/${randomFileId()}.${upload.ext}`;
       const { error: uploadError } = await supabase.storage.from('story-images').upload(path, upload.blob, {
-        contentType: upload.blob.type,
+        contentType: upload.type,
         upsert: false,
         cacheControl: '31536000', // file names are unique, so browsers can cache covers for a year
       });
@@ -497,7 +474,7 @@ export default function WritePage() {
       setCoverUrl(data.publicUrl);
       notify('Cover uploaded. Save or publish your story to keep it.');
     } catch (error) {
-      notify(error instanceof Error ? error.message : 'Could not upload the cover. Check the story-images bucket.');
+      notify(errorText(error, 'Could not upload the cover. Check the story-images bucket.'));
     } finally {
       setUploadingCover(false);
     }
@@ -663,7 +640,7 @@ export default function WritePage() {
 
         <div className="creator-two-col"><div><label className="creator-label" htmlFor="creator-category">GENRE</label><div className="creator-select-wrap"><select id="creator-category" className="creator-input" value={category} onChange={(e) => setCategory(e.target.value)}>{['Mystery', 'Real life', 'Thriller', 'Romance', 'Horror', 'Drama', 'Science fiction', 'Fantasy'].map((item) => <option key={item}>{item}</option>)}</select><ChevronDown size={15} /></div></div><div><label className="creator-label" htmlFor="creator-synopsis">SHORT TEASER</label><input id="creator-synopsis" className="creator-input" value={synopsis} onChange={(e) => setSynopsis(e.target.value)} maxLength={220} placeholder="A hint, not the answer…" /></div></div>
 
-        <div className="creator-image-field"><span className="creator-label">COVER IMAGE (OPTIONAL)</span><div className="cover-upload">{coverUrl ? <img className="cover-upload-preview" src={coverUrl} alt="Story cover preview" /> : <div className="cover-upload-empty" aria-hidden="true"><ImagePlus size={20} /></div>}<div className="cover-upload-actions"><label className={`creator-image-button ${uploadingCover ? 'is-disabled' : ''}`}><ImagePlus size={15} />{uploadingCover ? 'Uploading…' : coverUrl ? 'Replace cover' : 'Upload cover'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploadingCover} onChange={(event) => { void uploadCover(event.target.files?.[0]); event.currentTarget.value = ''; }} hidden /></label>{coverUrl && !uploadingCover ? <button type="button" className="creator-image-button" onClick={() => setCoverUrl('')}><Trash2 size={14} /> Remove</button> : null}</div></div><span className="creator-help">JPG, PNG, WebP or GIF, up to 5 MB. Large photos are resized automatically.</span></div>
+        <div className="creator-image-field"><span className="creator-label">COVER IMAGE (OPTIONAL)</span><div className="cover-upload">{coverUrl ? <img className="cover-upload-preview" src={coverUrl} alt="Story cover preview" /> : <div className="cover-upload-empty" aria-hidden="true"><ImagePlus size={20} /></div>}<div className="cover-upload-actions"><label className={`creator-image-button ${uploadingCover ? 'is-disabled' : ''}`}><ImagePlus size={15} />{uploadingCover ? 'Uploading…' : coverUrl ? 'Replace cover' : 'Upload cover'}<input type="file" accept="image/*,.heic,.heif" disabled={uploadingCover} onChange={(event) => { const input = event.currentTarget; void uploadCover(input.files?.[0]).finally(() => { input.value = ''; }); }} hidden /></label>{coverUrl && !uploadingCover ? <button type="button" className="creator-image-button" onClick={() => setCoverUrl('')}><Trash2 size={14} /> Remove</button> : null}</div></div><span className="creator-help">Any photo from your gallery or camera works. Large photos are resized and converted automatically.</span></div>
 
         <div className="creator-step-heading creator-chapter-heading"><span>02</span><div><h2>Write the chapters</h2><p>Decide what readers learn now—and what stays hidden.</p></div></div>
 

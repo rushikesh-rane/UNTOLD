@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildReaderParts, buildUpcomingParts, countdownLabel, formatTimeLeft, isChapterReleased, partsToPlainText, type RawChapter } from '../lib/reader.ts';
+import { buildReaderParts, buildUpcomingParts, countdownLabel, formatTimeLeft, isChapterReleased, isRecentlyPublished, partsToPlainText, type RawChapter } from '../lib/reader.ts';
 
 const NOW = new Date('2026-10-18T12:00:00Z');
 const day = 86400e3;
@@ -99,4 +99,11 @@ assert.equal(formatTimeLeft(1), 'less than a minute');
   const { parts } = buildReaderParts([ch({ position: 1 }), ch({ position: 3, title: 'Late', body: 'Three.' })], NOW);
   assert.deepEqual(parts.map((p) => p.position), [1, 3]);
 }
-console.log('reader helper: all 12 checks passed');
+// 13. "New" tab: published in the last 14 days only.
+assert.equal(isRecentlyPublished(at(-2 * 24 * H), NOW), true);
+assert.equal(isRecentlyPublished(at(-13 * 24 * H), NOW), true);
+assert.equal(isRecentlyPublished(at(-15 * 24 * H), NOW), false);
+assert.equal(isRecentlyPublished(at(5 * H), NOW), false);        // dates in the future are not "new"
+assert.equal(isRecentlyPublished(null, NOW), false);
+assert.equal(isRecentlyPublished('garbage', NOW), false);
+console.log('reader helper: all 13 checks passed');

@@ -88,12 +88,22 @@ const StoryEditor = forwardRef<StoryEditorHandle, StoryEditorProps>(
     useEffect(() => {
       if (!editor) return;
 
-      if (editor.getMarkdown() !== value) {
-        editor.commands.setContent(value, {
-          contentType: 'markdown',
-          emitUpdate: false,
-        });
-      }
+      // Tiptap renders image nodes through React (flushSync), which React forbids while it is
+      // still rendering/committing. Deferring to a microtask runs it right after, safely.
+      let cancelled = false;
+      queueMicrotask(() => {
+        if (cancelled || editor.isDestroyed) return;
+        if (editor.getMarkdown() !== value) {
+          editor.commands.setContent(value, {
+            contentType: 'markdown',
+            emitUpdate: false,
+          });
+        }
+      });
+
+      return () => {
+        cancelled = true;
+      };
     }, [editor, value]);
 
     useImperativeHandle(

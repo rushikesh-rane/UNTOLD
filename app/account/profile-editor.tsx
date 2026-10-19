@@ -4,11 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImagePlus, Trash2, UserRound } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { prepareAvatar } from '@/lib/avatar-image';
+import { errorText, prepareImage, randomFileId } from '@/lib/image-upload';
 
 type Fields = { displayName: string; username: string; bio: string; avatarUrl: string | null };
 
-const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const USERNAME = /^[a-zA-Z0-9_]{3,24}$/;
 const BIO_MAX = 280;
 const NAME_MAX = 40;
@@ -23,34 +22,60 @@ export default function ProfileEditor({ userId, initial }: { userId: string; ini
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+  // Photo status is shown right beside the photo; the form message sits at the bottom, out of sight.
+  const [photoMessage, setPhotoMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
   const cleanName = displayName.trim();
   const cleanUsername = username.trim().replace(/^@/, '');
   const cleanBio = bio.trim();
   const dirty = cleanName !== saved.displayName || cleanUsername !== saved.username || cleanBio !== saved.bio || avatarUrl !== saved.avatarUrl;
 
+  // Saves just the photo to the profile right away, so choosing a photo is all it takes.
+  async function persistAvatar(url: string | null) {
+    const supabase = createClient();
+    const { error } = await supabase.from('profiles').upsert(
+      { id: userId, avatar_url: url, updated_at: new Date().toISOString() },
+      { onConflict: 'id' },
+    );
+    if (error) throw error;
+    setAvatarUrl(url);
+    setSaved((current) => ({ ...current, avatarUrl: url }));
+    router.refresh();
+  }
+
   async function uploadAvatar(file?: File) {
     if (!file) return;
-    if (!IMAGE_TYPES.includes(file.type)) { setMessage({ kind: 'error', text: 'Use a JPG, PNG, WebP or GIF image.' }); return; }
-    if (file.size > 5 * 1024 * 1024) { setMessage({ kind: 'error', text: 'Images must be 5 MB or smaller.' }); return; }
     setUploading(true);
-    setMessage(null);
+    setPhotoMessage(null);
     try {
       const supabase = createClient();
-      const upload = await prepareAvatar(file);
-      const path = `${userId}/avatars/${crypto.randomUUID()}.${upload.ext}`;
+      const upload = await prepareImage(file, { maxSide: 320, square: true, quality: 0.88 });
+      const path = `${userId}/avatars/${randomFileId()}.${upload.ext}`;
       const { error } = await supabase.storage.from('story-images').upload(path, upload.blob, {
-        contentType: upload.blob.type,
+        contentType: upload.type,
         upsert: false,
         cacheControl: '31536000', // unique file names, so a long cache is safe
       });
       if (error) throw error;
       const { data } = supabase.storage.from('story-images').getPublicUrl(path);
       if (!data.publicUrl) throw new Error('Could not create the photo URL.');
-      setAvatarUrl(data.publicUrl);
-      setMessage({ kind: 'ok', text: 'Photo ready. Press Save changes to keep it.' });
+      await persistAvatar(data.publicUrl);
+      setPhotoMessage({ kind: 'ok', text: 'Profile photo updated.' });
     } catch (error) {
-      setMessage({ kind: 'error', text: error instanceof Error ? error.message : 'Could not upload the photo.' });
+      setPhotoMessage({ kind: 'error', text: `Couldn’t update your photo: ${errorText(error, 'unknown error')}` });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function removeAvatar() {
+    setUploading(true);
+    setPhotoMessage(null);
+    try {
+      await persistAvatar(null);
+      setPhotoMessage({ kind: 'ok', text: 'Profile photo removed.' });
+    } catch (error) {
+      setPhotoMessage({ kind: 'error', text: `Couldn’t remove your photo: ${errorText(error, 'unknown error')}` });
     } finally {
       setUploading(false);
     }
@@ -103,9 +128,10 @@ export default function ProfileEditor({ userId, initial }: { userId: string; ini
         <div className="cover-upload-actions">
           <label className={`creator-image-button ${uploading ? 'is-disabled' : ''}`}>
             <ImagePlus size={15} />{uploading ? 'Uploading…' : avatarUrl ? 'Change photo' : 'Upload photo'}
-            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading} onChange={(event) => { void uploadAvatar(event.target.files?.[0]); event.currentTarget.value = ''; }} hidden />
+            <input type="file" accept="image/*,.heic,.heif" disabled={uploading} onChange={(event) => { const input = event.currentTarget; void uploadAvatar(input.files?.[0]).finally(() => { input.value = ''; }); }} hidden />
           </label>
-          {avatarUrl && !uploading ? <button type="button" className="creator-image-button" onClick={() => setAvatarUrl(null)}><Trash2 size={14} /> Remove</button> : null}
+          {avatarUrl && !uploading ? <button type="button" className="creator-image-button" onClick={() => void removeAvatar()}><Trash2 size={14} /> Remove</button> : null}
+          {photoMessage ? <p className={`profile-edit-message ${photoMessage.kind}`} role="status" style={{ flexBasis: '100%', margin: 0 }}>{photoMessage.text}</p> : null}
         </div>
       </div>
 

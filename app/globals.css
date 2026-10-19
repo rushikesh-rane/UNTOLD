@@ -2,7 +2,7 @@
   --paper: #f8f7f4;
   --white: #fff;
   --ink: #242229;
-  --muted: #85818b;
+  --muted: #6a6770;
   --line: #e7e3df;
   --purple: #795c91;
   --purple-dark: #543c69;
@@ -63,7 +63,7 @@ button {
 
 .app-shell {
   min-height: 100vh;
-  max-width: 1440px;
+  max-width: none;
   margin: 0 auto
 }
 
@@ -109,16 +109,16 @@ button {
 .brand-word i,
 .footer-brand i {
   font-style: normal;
-  color: #a382c1
+  color: #8154aa
 }
 
 .topbar-note {
   display: flex;
   align-items: center;
   gap: 9px;
-  color: #918b96;
+  color: #6c6671;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.3px
 }
 
@@ -147,7 +147,7 @@ button {
   border-radius: 7px;
   background: transparent;
   color: #6f6478;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -170,7 +170,7 @@ button {
     min-height: 35px;
     gap: 5px;
     padding: 0 7px;
-    font-size: 10px;
+    font-size: 12px;
   }
 }
 
@@ -183,7 +183,7 @@ button {
   border: 1px solid var(--line);
   border-radius: 50%;
   background: #fff;
-  color: #77727f;
+  color: #6a6672;
   transition: all .2s
 }
 
@@ -202,7 +202,7 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600
 }
 
@@ -222,7 +222,7 @@ button {
   gap: 10px;
   padding: 0 14px;
   height: 47px;
-  color: #8c8493
+  color: #6d6674
 }
 
 .search-panel input {
@@ -238,7 +238,7 @@ button {
 .search-panel>button {
   border: 0;
   background: none;
-  color: #888
+  color: #686868
 }
 
 .feed-page {
@@ -256,9 +256,9 @@ button {
   align-items: center;
   gap: 8px;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.35px;
-  color: #8c729d;
+  color: #775e88;
   margin: 0
 }
 
@@ -285,13 +285,13 @@ button {
 .reader-title em,
 .modal-card h2 em {
   font-weight: 500;
-  color: #8869a0
+  color: #7a5c91
 }
 
 .intro-copy {
   font-size: 13px;
   line-height: 1.9;
-  color: #85818b;
+  color: #6a6770;
   margin: 0
 }
 
@@ -307,8 +307,8 @@ button {
 }
 
 .muted-eyebrow {
-  color: #99919e;
-  font-size: 8px;
+  color: #6e6573;
+  font-size: 12px;
   letter-spacing: 1.2px
 }
 
@@ -322,9 +322,9 @@ button {
 
 .story-count {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1px;
-  color: #a19aa4;
+  color: #6d6570;
   padding-bottom: 5px
 }
 
@@ -347,8 +347,8 @@ button {
   border: 0;
   background: transparent;
   padding: 0 0 13px;
-  color: #96909a;
-  font-size: 11px
+  color: #6c6670;
+  font-size: 12px
 }
 
 .feed-tabs button.tab-active {
@@ -371,12 +371,12 @@ button {
   align-items: center;
   gap: 6px;
   padding-bottom: 12px;
-  color: #a09aa3;
-  font-size: 9px
+  color: #6c656f;
+  font-size: 12px
 }
 
 .toolbar-note svg {
-  color: #9c7db0
+  color: #7d5a94
 }
 
 .story-list {
@@ -440,12 +440,12 @@ button {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #85689a;
+  color: #785d8b;
 }
 
 .story-cover-fallback span {
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 2px;
 }
 
@@ -456,9 +456,9 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #85689a;
+  color: #785d8b;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 2px;
   background: linear-gradient(145deg, #eee4f4 0%, #f8eee8 52%, #dfe9e6 100%);
 }
@@ -467,8 +467,8 @@ button {
   flex-shrink: 0;
   padding-top: 4px;
   font-family: var(--mono);
-  font-size: 10px;
-  color: #b6aabf;
+  font-size: 12px;
+  color: #736181;
   letter-spacing: .5px
 }
 
@@ -484,8 +484,8 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #9a949e;
-  font-size: 10px
+  color: #6c6670;
+  font-size: 12px
 }
 
 .story-row-meta>span:not(.category-pill) {
@@ -502,7 +502,7 @@ button {
   background: #f0e9f3;
   color: #785d8b;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: .7px
 }
 
@@ -533,7 +533,7 @@ button {
 
 .story-row-excerpt {
   max-width: 600px;
-  color: #77727d;
+  color: #6a6670;
   font-size: 12px;
   line-height: 1.7
 }
@@ -543,8 +543,8 @@ button {
   align-items: center;
   gap: 17px;
   margin-top: 16px;
-  color: #9a949e;
-  font-size: 10px
+  color: #6c6670;
+  font-size: 12px
 }
 
 .story-row-bottom>span {
@@ -578,7 +578,7 @@ button {
   border: 1px solid transparent;
   border-radius: 50%;
   background: transparent;
-  color: #aaa2ad
+  color: #6f6572
 }
 
 .row-bookmark:hover,
@@ -592,7 +592,7 @@ button {
   justify-items: center;
   gap: 9px;
   padding: 65px 20px;
-  color: #928a97;
+  color: #6d6572;
   text-align: center
 }
 
@@ -613,7 +613,7 @@ button {
   background: white;
   padding: 8px 12px;
   color: #76588b;
-  font-size: 11px
+  font-size: 12px
 }
 
 .page-footer {
@@ -624,8 +624,8 @@ button {
   margin-top: 65px;
   padding: 21px 0 27px;
   border-top: 1px solid var(--line);
-  color: #a49da6;
-  font-size: 9px
+  color: #6e6670;
+  font-size: 12px
 }
 
 .footer-brand {
@@ -647,8 +647,8 @@ button {
   border: 0;
   background: transparent;
   padding: 8px 0;
-  color: #7f7387;
-  font-size: 11px
+  color: #6f6576;
+  font-size: 12px
 }
 
 .back-button:hover {
@@ -665,8 +665,8 @@ button {
   align-items: center;
   flex-wrap: wrap;
   gap: 13px;
-  color: #9b949e;
-  font-size: 10px
+  color: #6d6670;
+  font-size: 12px
 }
 
 .reader-meta>span:not(.category-pill) {
@@ -688,7 +688,7 @@ button {
   font-family: var(--serif);
   font-size: 20px;
   line-height: 1.5;
-  color: #79717e;
+  color: #6d6672;
   margin: 0;
   max-width: 650px
 }
@@ -736,8 +736,8 @@ button {
 }
 
 .reader-byline>div span {
-  font-size: 10px;
-  color: #9a929e
+  font-size: 12px;
+  color: #6d6572
 }
 
 .follow-button {
@@ -749,7 +749,7 @@ button {
   background: #fff;
   padding: 8px 10px;
   color: #74558a;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600
 }
 
@@ -770,7 +770,7 @@ button {
   background: #fff;
   padding: 10px 12px;
   color: #5e4b6c;
-  font-size: 11px
+  font-size: 12px
 }
 
 .listen-button {
@@ -789,8 +789,8 @@ button {
   gap: 4px;
   padding-left: 8px;
   border-left: 1px solid #d2c1df;
-  color: #8a7796;
-  font-size: 9px
+  color: #73617e;
+  font-size: 12px
 }
 
 .listen-button.listening>span {
@@ -800,7 +800,7 @@ button {
 
 .reader-save {
   margin-left: auto;
-  color: #89818e
+  color: #6d6671
 }
 
 .reader-save.is-saved {
@@ -861,8 +861,8 @@ button {
 .media-heading>span,
 .theory-heading>span {
   font-family: var(--mono);
-  font-size: 9px;
-  color: #a39aa6;
+  font-size: 12px;
+  color: #6f6573;
   letter-spacing: .8px;
   padding-bottom: 4px
 }
@@ -922,7 +922,7 @@ button {
   right: 35px;
   bottom: 13px;
   color: white;
-  font-size: 11px;
+  font-size: 12px;
   text-shadow: 0 1px 5px #0006
 }
 
@@ -942,8 +942,8 @@ button {
 
 .gallery-hint {
   margin: 10px 0 0;
-  color: #a19aa3;
-  font-size: 10px
+  color: #6d656f;
+  font-size: 12px
 }
 
 .reader-body-later {
@@ -984,8 +984,8 @@ button {
 }
 
 .reveal-card p {
-  font-size: 11px;
-  color: #8c8292;
+  font-size: 12px;
+  color: #6f6574;
   margin: 0;
   line-height: 1.6
 }
@@ -993,9 +993,9 @@ button {
 .reveal-status {
   align-self: flex-start;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: .7px;
-  color: #8b729b;
+  color: #786087;
   white-space: nowrap
 }
 
@@ -1016,9 +1016,9 @@ button {
 .field-label {
   display: block;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
-  color: #978a9f;
+  color: #716379;
   margin-bottom: 9px
 }
 
@@ -1038,7 +1038,7 @@ button {
 
 .theory-form textarea::placeholder,
 .publish-textarea::placeholder {
-  color: #b5aab9
+  color: #736379
 }
 
 .theory-form-bottom {
@@ -1048,8 +1048,8 @@ button {
   gap: 12px;
   padding-top: 10px;
   border-top: 1px solid #f0ecf1;
-  color: #a39ba5;
-  font-size: 9px
+  color: #6e6570;
+  font-size: 12px
 }
 
 .theory-form-bottom button {
@@ -1061,7 +1061,7 @@ button {
   background: #74568e;
   color: #fff;
   padding: 9px 11px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600
 }
 
@@ -1079,13 +1079,13 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #a19aa4;
-  font-size: 9px
+  color: #6d6570;
+  font-size: 12px
 }
 
 .theory-author strong {
   color: #625868;
-  font-size: 10px
+  font-size: 12px
 }
 
 .theory-avatar {
@@ -1120,9 +1120,9 @@ button {
   gap: 5px;
   border: 0;
   background: transparent;
-  color: #9d949f;
+  color: #6e6570;
   padding: 3px 0;
-  font-size: 10px
+  font-size: 12px
 }
 
 .theory-votes button:hover {
@@ -1131,9 +1131,9 @@ button {
 
 .own-label {
   margin-left: auto;
-  color: #8b6ba0;
+  color: #7c5c90;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: .5px
 }
 
@@ -1154,19 +1154,19 @@ button {
   background: #fff;
   color: #5d4a6c;
   box-shadow: 0 12px 45px #3020371a;
-  font-size: 11px;
+  font-size: 12px;
   animation: toast-in .2s ease-out
 }
 
 .toast>svg {
-  color: #8d6aa4;
+  color: #7e5b95;
   flex-shrink: 0
 }
 
 .toast button {
   border: 0;
   background: none;
-  color: #9b91a3;
+  color: #6e6477;
   padding: 0;
   display: grid;
   place-items: center
@@ -1222,7 +1222,7 @@ button {
 .modal-description {
   font-size: 12px;
   line-height: 1.7;
-  color: #89828f;
+  color: #6c6571;
   margin: 0 0 23px
 }
 
@@ -1237,7 +1237,7 @@ button {
   border: 1px solid #ebe5ed;
   border-radius: 8px;
   background: #fff;
-  color: #8d8493
+  color: #6d6573
 }
 
 .publish-input {
@@ -1278,9 +1278,9 @@ button {
 }
 
 .publish-modal-bottom>span {
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.5;
-  color: #a59ca9;
+  color: #6f6473;
   max-width: 185px
 }
 
@@ -1295,7 +1295,7 @@ button {
   background: #74568e;
   color: white;
   padding: 0 14px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap
 }
@@ -1390,7 +1390,7 @@ button {
   .publish-button {
     height: 35px;
     padding: 0 10px;
-    font-size: 10px
+    font-size: 12px
   }
 
   .feed-page {
@@ -1424,7 +1424,7 @@ button {
   }
 
   .story-count {
-    font-size: 8px
+    font-size: 12px
   }
 
   .feed-toolbar {
@@ -1436,7 +1436,7 @@ button {
   }
 
   .toolbar-note {
-    font-size: 8px
+    font-size: 12px
   }
 
   .story-row-main {
@@ -1445,17 +1445,17 @@ button {
   }
 
   .story-index {
-    font-size: 9px
+    font-size: 12px
   }
 
   .story-row-meta {
     gap: 8px;
     flex-wrap: wrap;
-    font-size: 9px
+    font-size: 12px
   }
 
   .category-pill {
-    font-size: 7px
+    font-size: 12px
   }
 
   .story-row-author {
@@ -1468,14 +1468,14 @@ button {
   }
 
   .story-row-excerpt {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.6
   }
 
   .story-row-bottom {
     gap: 11px;
     flex-wrap: wrap;
-    font-size: 9px;
+    font-size: 12px;
     margin-top: 13px
   }
 
@@ -1529,7 +1529,7 @@ button {
   .listen-button,
   .reader-save {
     padding: 9px;
-    font-size: 10px
+    font-size: 12px
   }
 
   .listen-button>span {
@@ -1558,7 +1558,7 @@ button {
   .gallery-caption {
     left: 9px;
     bottom: 9px;
-    font-size: 9px
+    font-size: 12px
   }
 
   .gallery-expand {
@@ -1584,7 +1584,7 @@ button {
   }
 
   .reveal-card p {
-    font-size: 10px
+    font-size: 12px
   }
 
   .reveal-status {
@@ -1622,7 +1622,7 @@ button {
 
   .toast {
     bottom: 15px;
-    font-size: 10px
+    font-size: 12px
   }
 }
 
@@ -1684,7 +1684,8 @@ button {
 
 /* Balanced three-column discovery layout */
 .workspace-grid {
-  width: min(calc(100% - 48px), 1320px);
+  /* Fills the screen, lined up with the header's side padding; only capped on ultra-wide monitors. */
+  width: min(calc(100% - 2 * clamp(22px, 5vw, 76px)), 1840px);
   margin: 0 auto;
   display: grid;
   grid-template-columns: 190px minmax(0, 1fr) 245px;
@@ -1729,9 +1730,9 @@ button {
 
 .sidebar-label {
   margin: 0 0 11px 12px;
-  color: #aaa1ad;
+  color: #706574;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.25px
 }
 
@@ -1745,7 +1746,7 @@ button {
   border: 0;
   border-radius: 7px;
   background: transparent;
-  color: #827b88;
+  color: #6c6671;
   text-align: left;
   font-size: 12px;
   transition: background .18s, color .18s
@@ -1753,7 +1754,7 @@ button {
 
 .sidebar-link svg {
   flex-shrink: 0;
-  color: #9a8ca5
+  color: #71627d
 }
 
 .sidebar-link:hover {
@@ -1779,9 +1780,9 @@ button {
   place-items: center;
   border-radius: 5px;
   background: #fff;
-  color: #8c7a99;
+  color: #72617f;
   font-family: var(--mono);
-  font-size: 9px
+  font-size: 12px
 }
 
 .sidebar-divider {
@@ -1819,9 +1820,9 @@ button {
 }
 
 .sidebar-note p {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.7;
-  color: #928895;
+  color: #6e6571;
   margin: 8px 0 0
 }
 
@@ -1846,14 +1847,14 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  color: #9a8ba4;
+  color: #73627d;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px
 }
 
 .widget-heading svg {
-  color: #9b80ae
+  color: #7a5c90
 }
 
 .featured-widget {
@@ -1863,9 +1864,9 @@ button {
 
 .featured-kicker {
   margin: 22px 0 8px;
-  color: #a096a7;
+  color: #706478;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: .8px
 }
 
@@ -1889,7 +1890,7 @@ button {
 .featured-story-title svg {
   flex-shrink: 0;
   margin-top: 4px;
-  color: #8b70a0;
+  color: #785d8c;
   transition: transform .2s
 }
 
@@ -1898,9 +1899,9 @@ button {
 }
 
 .widget-copy {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.7;
-  color: #8c8491;
+  color: #6d6672;
   margin: 12px 0 16px
 }
 
@@ -1912,7 +1913,7 @@ button {
   border: 0;
   background: transparent;
   color: #76558d;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700
 }
 
@@ -1965,7 +1966,7 @@ button {
 }
 
 .mini-theory strong {
-  font-size: 9px;
+  font-size: 12px;
   color: #64566d
 }
 
@@ -1974,7 +1975,7 @@ button {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  color: #89818e;
+  color: #6d6671;
   font-family: var(--serif);
   font-size: 12px;
   line-height: 1.5
@@ -1998,9 +1999,9 @@ button {
 
 .widget-signoff {
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
-  color: #a08eaa
+  color: #756181
 }
 
 .workspace-grid .page-footer {
@@ -2015,7 +2016,7 @@ button {
 
 .workspace-grid .page-footer>span:last-child {
   width: 100%;
-  font-size: 8px
+  font-size: 12px
 }
 
 @media(max-width:1120px) {
@@ -2069,7 +2070,7 @@ button {
     min-height: 36px;
     padding: 0 11px;
     gap: 7px;
-    font-size: 10px
+    font-size: 12px
   }
 
   .sidebar-link svg {
@@ -2117,7 +2118,7 @@ button {
 :root {
   --paper: #fbf7f2;
   --ink: #26202c;
-  --muted: #77717e;
+  --muted: #6c6672;
   --line: #e9dfd7;
   --purple: #7650a0;
   --purple-dark: #563579;
@@ -2149,8 +2150,9 @@ body {
 }
 
 .workspace-grid {
-  grid-template-columns: 190px minmax(0, 1fr) 260px;
-  gap: 32px
+  /* side columns grow a little on big screens so the feed doesn't sit in a narrow strip */
+  grid-template-columns: clamp(190px, 13vw, 260px) minmax(0, 1fr) clamp(260px, 19vw, 360px);
+  gap: clamp(32px, 2.6vw, 56px)
 }
 
 .workspace-grid .intro-block {
@@ -2241,9 +2243,9 @@ body {
 }
 
 .widget-copy {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.65;
-  color: #837887;
+  color: #6e6571;
   margin: 8px 0 14px
 }
 
@@ -2279,19 +2281,19 @@ body {
 }
 
 .mood-options strong {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: #493650
 }
 
 .mood-options small {
-  font-size: 9px;
-  color: #928697;
+  font-size: 12px;
+  color: #6f6474;
   line-height: 1.4
 }
 
 .mood-options button>svg {
-  color: #a393ad;
+  color: #746180;
   flex-shrink: 0
 }
 
@@ -2311,12 +2313,12 @@ body {
 
 .mood-coral {
   background: #ffe8df;
-  color: #b86552
+  color: #a05342
 }
 
 .mood-blue {
   background: #e2f0fb;
-  color: #477fa7
+  color: #3d6d90
 }
 
 .reset-discovery {
@@ -2330,7 +2332,7 @@ body {
   width: 100%;
   background: transparent;
   color: #775094;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700
 }
 
@@ -2376,7 +2378,7 @@ body {
   background: #f1e8f8;
   color: #8054a3;
   font-family: var(--mono);
-  font-size: 9px
+  font-size: 12px
 }
 
 .how-steps li div {
@@ -2384,14 +2386,14 @@ body {
 }
 
 .how-steps strong {
-  font-size: 10px;
+  font-size: 12px;
   color: #4b3b52
 }
 
 .how-steps p {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.55;
-  color: #89808c;
+  color: #6e6671;
   margin: 4px 0 0
 }
 
@@ -2457,9 +2459,9 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font: 10px var(--mono);
+  font: 12px var(--mono);
   letter-spacing: .12em;
-  color: #8a7d90
+  color: #706476
 }
 
 .creator-status span {
@@ -2487,8 +2489,8 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #8b65a7;
-  font: 10px var(--mono);
+  color: #7e589a;
+  font: 12px var(--mono);
   letter-spacing: .15em
 }
 
@@ -2503,13 +2505,13 @@ body {
 .how-page-hero h1 em,
 .creator-aside-card h3 em,
 .how-section-intro h2 em {
-  color: #9068ad;
+  color: #8157a0;
   font-weight: 500
 }
 
 .creator-lead {
   max-width: 620px;
-  color: #7d7282;
+  color: #6f6573;
   font-size: 14px;
   line-height: 1.8;
   margin: 0 0 40px
@@ -2531,7 +2533,7 @@ body {
   border-radius: 9px;
   background: #eee3f5;
   color: #80549e;
-  font: 10px var(--mono);
+  font: 12px var(--mono);
   flex-shrink: 0
 }
 
@@ -2541,15 +2543,15 @@ body {
 }
 
 .creator-step-heading p {
-  font-size: 11px;
-  color: #8a7e8c;
+  font-size: 12px;
+  color: #706572;
   margin: 0
 }
 
 .creator-label {
   display: block;
-  color: #918396;
-  font: 9px var(--mono);
+  color: #716476;
+  font: 12px var(--mono);
   letter-spacing: .13em;
   margin: 17px 0 8px
 }
@@ -2600,7 +2602,7 @@ body {
   position: absolute;
   right: 13px;
   top: 14px;
-  color: #887b8d;
+  color: #6f6474;
   pointer-events: none
 }
 
@@ -2626,7 +2628,7 @@ body {
   border-radius: 8px;
   padding: 9px 11px;
   color: #786b7e;
-  font-size: 11px
+  font-size: 12px
 }
 
 .chapter-tab span {
@@ -2636,7 +2638,7 @@ body {
   width: 18px;
   height: 18px;
   border-radius: 5px;
-  font: 9px var(--mono)
+  font: 12px var(--mono)
 }
 
 .chapter-tab.active {
@@ -2683,8 +2685,8 @@ body {
   justify-content: space-between;
   gap: 12px;
   margin-top: 8px;
-  color: #9a8f9c;
-  font-size: 10px
+  color: #706572;
+  font-size: 12px
 }
 
 .reveal-setting {
@@ -2715,13 +2717,13 @@ body {
 }
 
 .reveal-setting-copy strong {
-  font-size: 11px;
+  font-size: 12px;
   color: #55435d
 }
 
 .reveal-setting-copy span {
-  font-size: 10px;
-  color: #918596
+  font-size: 12px;
+  color: #706474
 }
 
 .reveal-setting select {
@@ -2730,7 +2732,7 @@ body {
   background: #fff;
   padding: 8px;
   color: #72518a;
-  font-size: 10px;
+  font-size: 12px;
   max-width: 135px
 }
 
@@ -2741,8 +2743,8 @@ body {
   margin: 14px 0 0 auto;
   border: 0;
   background: transparent;
-  color: #b36a69;
-  font-size: 10px
+  color: #9e5150;
+  font-size: 12px
 }
 
 .creator-actions {
@@ -2799,8 +2801,8 @@ body {
 
 .creator-publish-note p {
   margin: 0;
-  color: #688273;
-  font-size: 11px;
+  color: #576d60;
+  font-size: 12px;
   line-height: 1.65
 }
 
@@ -2860,20 +2862,20 @@ body {
 }
 
 .creator-aside-card li>span {
-  font: 9px var(--mono);
-  color: #9c7bb2;
+  font: 12px var(--mono);
+  color: #7e5897;
   padding-top: 2px
 }
 
 .creator-aside-card li strong {
-  font-size: 11px;
+  font-size: 12px;
   color: #594760
 }
 
 .creator-aside-card li p {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
-  color: #918596;
+  color: #706474;
   margin: 4px 0 0
 }
 
@@ -2886,7 +2888,7 @@ body {
   padding-top: 15px;
   text-decoration: none;
   color: #7a5195;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700
 }
 
@@ -2909,7 +2911,7 @@ body {
   border-radius: 8px;
   background: #f0e6f6;
   color: #80549e;
-  font: 10px var(--mono)
+  font: 12px var(--mono)
 }
 
 .no-drafts {
@@ -2917,7 +2919,7 @@ body {
   justify-items: center;
   text-align: center;
   padding: 25px 5px 8px;
-  color: #a18ea9
+  color: #76617f
 }
 
 .no-drafts strong {
@@ -2927,9 +2929,9 @@ body {
 }
 
 .no-drafts p {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
-  color: #968a9a;
+  color: #706474;
   max-width: 190px
 }
 
@@ -2959,15 +2961,15 @@ body {
 }
 
 .saved-draft strong {
-  font-size: 11px;
+  font-size: 12px;
   color: #594760;
   overflow-wrap: anywhere
 }
 
 .saved-draft span,
 .saved-draft small {
-  font-size: 9px;
-  color: #95899b
+  font-size: 12px;
+  color: #706476
 }
 
 .delete-draft {
@@ -2978,7 +2980,7 @@ body {
   border: 0;
   border-radius: 7px;
   background: #fbf1f0;
-  color: #b16f6b
+  color: #995550
 }
 
 .creator-toast {
@@ -3028,7 +3030,7 @@ body {
   top: 13px;
   border: 0;
   background: transparent;
-  color: #7c6c82;
+  color: #716377;
   font-size: 28px
 }
 
@@ -3038,7 +3040,7 @@ body {
   color: #80549e;
   border-radius: 6px;
   padding: 5px 8px;
-  font: 9px var(--mono)
+  font: 12px var(--mono)
 }
 
 .creator-preview h2 {
@@ -3047,7 +3049,7 @@ body {
 }
 
 .preview-synopsis {
-  color: #837589;
+  color: #716576;
   line-height: 1.7;
   font-size: 13px
 }
@@ -3097,7 +3099,7 @@ body {
 
 .how-page-hero>p:last-child {
   max-width: 590px;
-  color: #7f7384;
+  color: #6f6574;
   font-size: 16px;
   line-height: 1.85
 }
@@ -3111,9 +3113,9 @@ body {
 
 .how-section-intro>span,
 .how-creator-banner>div:nth-child(2)>span {
-  font: 10px var(--mono);
+  font: 12px var(--mono);
   letter-spacing: .14em;
-  color: #8e6aa7
+  color: #7d5997
 }
 
 .how-section-intro h2 {
@@ -3123,7 +3125,7 @@ body {
 
 .how-section-intro>p {
   font-size: 12px;
-  color: #918595
+  color: #706473
 }
 
 .how-step-grid {
@@ -3146,8 +3148,8 @@ body {
   position: absolute;
   right: 15px;
   top: 16px;
-  color: #b6a6bd;
-  font: 10px var(--mono)
+  color: #776081;
+  font: 12px var(--mono)
 }
 
 .how-step-icon {
@@ -3163,17 +3165,17 @@ body {
 
 .how-step-card:nth-child(2) .how-step-icon {
   background: #ffe8df;
-  color: #b86552
+  color: #a05342
 }
 
 .how-step-card:nth-child(3) .how-step-icon {
   background: #e1eef8;
-  color: #477fa7
+  color: #3d6d90
 }
 
 .how-step-card:nth-child(4) .how-step-icon {
   background: #e2f1e8;
-  color: #488362
+  color: #3f7356
 }
 
 .how-step-card h3 {
@@ -3182,9 +3184,9 @@ body {
 }
 
 .how-step-card p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
-  color: #867a8b;
+  color: #6f6473;
   margin: 0
 }
 
@@ -3220,7 +3222,7 @@ body {
   max-width: 720px;
   font-size: 12px;
   line-height: 1.8;
-  color: #7f7384
+  color: #6f6574
 }
 
 .how-cta {
@@ -3233,7 +3235,7 @@ body {
   color: #fff;
   border-radius: 9px;
   padding: 11px 14px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700
 }
 
@@ -3248,9 +3250,9 @@ body {
 }
 
 .how-footer>span {
-  font: 9px var(--mono);
+  font: 12px var(--mono);
   letter-spacing: .1em;
-  color: #a094a4
+  color: #716476
 }
 
 @media(max-width:900px) {
@@ -3427,8 +3429,8 @@ body {
 }
 
 .preview-locked-overlay>span:last-child {
-  font-size: 10px;
-  color: #928398
+  font-size: 12px;
+  color: #726378
 }
 
 /* Reader + creator batch: explicit locked chapters and usable action spacing */
@@ -3479,8 +3481,8 @@ body {
 }
 
 .reader-locked-message span {
-  font-size: 10px;
-  color: #928398
+  font-size: 12px;
+  color: #726378
 }
 
 .creator-actions {
@@ -3489,7 +3491,7 @@ body {
 
 .creator-actions .creator-primary,
 .creator-actions .creator-secondary {
-  min-height: 42px
+  min-height: 44px
 }
 
 @media(max-width:600px) {
@@ -3558,7 +3560,7 @@ body {
 }
 
 .auth-intro {
-  color: #817785;
+  color: #6d6571;
   line-height: 1.7;
   margin: 0 0 2rem
 }
@@ -3601,7 +3603,7 @@ body {
 
 .auth-switch {
   text-align: center;
-  color: #817785;
+  color: #6d6571;
   font-size: .92rem;
   margin: 1.5rem 0 .7rem
 }
@@ -3618,7 +3620,7 @@ body {
 
 .auth-footnote {
   text-align: center;
-  color: #a098a4;
+  color: #6f6673;
   font-size: .76rem;
   line-height: 1.55;
   margin: 1rem 0 0
@@ -3690,9 +3692,9 @@ body {
 
 .account-identity-copy span,
 .account-detail>span {
-  font: 9px var(--mono);
+  font: 12px var(--mono);
   letter-spacing: .12em;
-  color: #97899c
+  color: #726477
 }
 
 .account-identity-copy strong {
@@ -3714,7 +3716,7 @@ body {
 }
 
 .account-detail code {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
   color: #72508a;
   overflow-wrap: anywhere;
@@ -3723,12 +3725,12 @@ body {
 
 .account-confirmed,
 .account-pending {
-  font-size: 11px;
+  font-size: 12px;
   color: #397a5b
 }
 
 .account-pending {
-  color: #a06c31
+  color: #8c5f2b
 }
 
 .account-actions {
@@ -3752,7 +3754,7 @@ body {
   text-decoration: none;
   padding: 10px 13px;
   border-radius: 9px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700
 }
 
@@ -3830,10 +3832,10 @@ body {
 }
 
 .community-kicker {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: .19em;
   font-weight: 800;
-  color: #8b70a7;
+  color: #785c95;
   margin: 0 0 12px
 }
 
@@ -3847,12 +3849,12 @@ body {
 }
 
 .community-intro h1 em {
-  color: #8b70a7;
+  color: #785c95;
   font-weight: 500
 }
 
 .community-intro>p:not(.community-kicker) {
-  color: #777286;
+  color: #6b6678;
   max-width: 640px;
   line-height: 1.65;
   margin: 14px 0 18px
@@ -3889,7 +3891,7 @@ body {
   gap: 8px;
   border: 1px solid transparent;
   background: transparent;
-  color: #777286;
+  color: #6b6678;
   border-radius: 999px;
   padding: 11px 15px;
   font-weight: 700;
@@ -3906,7 +3908,7 @@ body {
 .community-status {
   max-width: 1180px;
   margin: 16px auto;
-  color: #847b8e;
+  color: #6d6576;
   font-size: 12px;
   min-height: 18px
 }
@@ -3925,7 +3927,7 @@ body {
 }
 
 .community-muted {
-  color: #817b8b;
+  color: #6c6674;
   font-size: 13px;
   margin: 0 0 24px
 }
@@ -3946,10 +3948,10 @@ body {
 }
 
 .community-genre {
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: .14em;
   font-weight: 800;
-  color: #8b70a7;
+  color: #785c95;
   text-transform: uppercase
 }
 
@@ -3964,7 +3966,7 @@ body {
 .community-card p {
   font-size: 13px;
   line-height: 1.6;
-  color: #777286;
+  color: #6b6678;
   margin: 0 0 16px
 }
 
@@ -4001,7 +4003,7 @@ body {
   flex-direction: column;
   gap: 10px;
   text-align: center;
-  color: #8b70a7;
+  color: #785c95;
   padding: 24px
 }
 
@@ -4012,7 +4014,7 @@ body {
 }
 
 .community-empty span {
-  color: #817b8b;
+  color: #6c6674;
   font-size: 12px;
   max-width: 420px;
   line-height: 1.6
@@ -4028,7 +4030,7 @@ body {
 .community-label,
 .community-note-form>label {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: .08em;
   font-weight: 800;
   color: #716881;
@@ -4075,8 +4077,8 @@ body {
   justify-content: space-between;
   gap: 12px;
   margin-top: 12px;
-  color: #938a9c;
-  font-size: 11px
+  color: #6e6577;
+  font-size: 12px
 }
 
 .community-note-form button {
@@ -4119,8 +4121,8 @@ body {
 
 .community-note time {
   margin-left: 10px;
-  color: #a39aa9;
-  font-size: 10px
+  color: #6f6476;
+  font-size: 12px
 }
 
 .community-note p {
@@ -4150,7 +4152,7 @@ body {
   }
 
   .community-tabs button {
-    font-size: 11px;
+    font-size: 12px;
     padding: 10px 11px
   }
 
@@ -4173,7 +4175,7 @@ body {
   background: #f5f0f9;
   color: #72558f;
   padding: 8px 11px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 750;
   cursor: pointer
 }
@@ -4191,7 +4193,7 @@ body {
   border-radius: 12px;
   background: #f7f0fa;
   color: #76508d;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: .12em;
   font-weight: 700
 }
@@ -4249,9 +4251,9 @@ body {
 
 .editorial-sidebar-label {
   margin: 4px 0 0;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.12em;
-  color: #82748b;
+  color: #706478;
 }
 
 .editorial-nav {
@@ -4302,7 +4304,7 @@ body {
 }
 
 .editorial-philosophy>span:not(.editorial-philosophy-icon) {
-  color: #82748b;
+  color: #706478;
 }
 
 .editorial-profile {
@@ -4322,7 +4324,7 @@ body {
 }
 
 .editorial-profile small {
-  color: #82748b;
+  color: #706478;
 }
 
 .editorial-profile-chevron {
@@ -4602,8 +4604,8 @@ img {
 }
 
 .reader-profile-link span {
-  font-size: 10px;
-  color: #9a929e;
+  font-size: 12px;
+  color: #6d6572;
 }
 
 .theory-profile-link,
@@ -4620,7 +4622,7 @@ img {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #92879a;
+  color: #706578;
   font-size: 12px;
   margin-top: 14px;
 }
@@ -4654,8 +4656,8 @@ img {
 }
 
 .public-profile-stats span {
-  font-size: 11px;
-  color: #8c8292;
+  font-size: 12px;
+  color: #6f6574;
 }
 
 .public-profile-follow {
@@ -4671,7 +4673,7 @@ img {
 
 .public-profile-follow p {
   font-size: 12px;
-  color: #7c6d86;
+  color: #706379;
 }
 
 .public-person-row {
@@ -4755,7 +4757,7 @@ img {
 .saved-drafts-card .saved-draft>div:first-child>small {
   display: block;
   color: var(--muted, #82758b);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -4804,8 +4806,8 @@ img {
   align-items: center;
   flex-wrap: wrap;
   gap: 6px 8px;
-  color: #827987;
-  font-size: 10px;
+  color: #6d6672;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -4819,9 +4821,9 @@ img {
   padding: 4px 8px;
   border: 1px solid #f2e2c8;
   border-radius: 6px;
-  color: #916c32;
+  color: #84622d;
   background: #fff9ed;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .ps-genre::before {
@@ -4832,7 +4834,7 @@ img {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #31826a;
+  color: #2b735e;
 }
 
 .ps-live::before {
@@ -4862,13 +4864,13 @@ img {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   margin: 0;
-  color: #827987;
+  color: #6d6672;
   font-size: 12px;
   line-height: 1.6;
 }
 
 .ps-synopsis.muted {
-  color: #a39aa5;
+  color: #6f6571;
 }
 
 .ps-date {
@@ -4877,8 +4879,8 @@ img {
   gap: 7px;
   margin-top: auto;
   padding-top: 14px;
-  color: #8b8290;
-  font-size: 10px;
+  color: #6d6572;
+  font-size: 12px;
 }
 
 .ps-cover {
@@ -4911,7 +4913,7 @@ img {
 
 .ps-cover-placeholder span {
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
@@ -5034,8 +5036,8 @@ img {
 .creator-help {
   display: block;
   margin-top: 8px;
-  color: #968a9a;
-  font-size: 11px;
+  color: #706474;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -5152,7 +5154,7 @@ img {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   margin: 0;
-  color: #827987;
+  color: #6d6672;
   font-size: 12px;
   line-height: 1.6;
 }
@@ -5160,8 +5162,8 @@ img {
 .account-story-item small {
   display: block;
   margin-top: 8px;
-  color: #8b8290;
-  font-size: 10px;
+  color: #6d6572;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -5930,29 +5932,6 @@ select:focus {
     }
   }
 
-  /* thin reading / scroll progress line */
-  body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    z-index: 200;
-    pointer-events: none;
-    background: linear-gradient(90deg, #8d66b0, #d0709a, #8d66b0);
-    transform-origin: left center;
-    transform: scaleX(0);
-    animation: scroll-progress linear both;
-    animation-timeline: scroll(root);
-  }
-
-  @keyframes scroll-progress {
-    to {
-      transform: scaleX(1);
-    }
-  }
-
   /* items further down the page ease in as they scroll into view */
   .story-list>.story-row:nth-child(n+6),
   .how-step-card:nth-child(n+4),
@@ -6034,7 +6013,7 @@ select:focus {
     min-height: 54px;
     padding: 6px 8px;
     border-radius: 16px;
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1.1;
     text-align: center;
     scroll-snap-align: center;
@@ -6057,7 +6036,7 @@ select:focus {
     margin: 0;
     min-width: 16px;
     height: 16px;
-    font-size: 9px;
+    font-size: 12px;
   }
 
   .toast,
@@ -6142,7 +6121,6 @@ select:focus {
 @media (prefers-reduced-motion: reduce) {
 
   body::before,
-  body::after,
   .live-dot::after,
   h1 em,
   h2 em,
@@ -6264,10 +6242,10 @@ select:focus {
   }
 
   .topbar-actions .profile-button {
-    width: 38px;
-    min-width: 38px;
-    height: 38px;
-    min-height: 38px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
     padding: 0;
     border-radius: 12px;
   }
@@ -6277,8 +6255,8 @@ select:focus {
   }
 
   .topbar-actions .icon-button {
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
   }
 }
 
@@ -6316,7 +6294,7 @@ select:focus {
 }
 
 .theory-votes .like-button.is-liked {
-  color: #c8405a;
+  color: #bb364f;
   font-weight: 600;
 }
 
@@ -6363,7 +6341,7 @@ select:focus {
 .reply-avatar {
   width: 22px;
   height: 22px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .reply-form {
@@ -6375,7 +6353,7 @@ select:focus {
 .reply-form label {
   color: var(--purple);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: .5px;
 }
 
@@ -6469,14 +6447,14 @@ html[data-theme='dark'] .theme-toggle .theme-icon-sun {
 
   .topbar-actions .icon-button,
   .topbar-actions .profile-button {
-    width: 34px;
-    min-width: 34px;
-    height: 34px;
-    min-height: 34px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
   }
 
   .topbar-actions .publish-button {
-    height: 34px;
+    height: 44px;
     padding: 0 11px;
   }
 
@@ -6735,7 +6713,7 @@ html[data-theme='dark'] .theme-toggle .theme-icon-sun {
 }
 
 .reveal-countdown .reveal-status {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: .8px
 }
 
@@ -6781,4 +6759,168 @@ html[data-theme='dark'] .theme-toggle .theme-icon-sun {
   .reveal-countdown h3 {
     font-size: 21px
   }
+}
+
+/* =====================================================================
+   Accessibility pass: visible keyboard focus and comfortable tap targets
+   ===================================================================== */
+:root {
+  --focus-ring: #4f3668
+}
+
+/* One clear focus ring for every control. !important so no older `outline: none` can hide it. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[role='button']:focus-visible,
+[role='tab']:focus-visible,
+[tabindex]:not([tabindex='-1']):focus-visible {
+  outline: 3px solid var(--focus-ring) !important;
+  outline-offset: 2px !important
+}
+
+/* Main navigation and header controls: at least 44px in both directions */
+.brand-lockup {
+  min-height: 44px
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px
+}
+
+.profile-button {
+  min-height: 44px;
+  min-width: 44px
+}
+
+.publish-button {
+  height: 44px;
+  min-width: 44px
+}
+
+.sidebar-link {
+  min-height: 44px
+}
+
+.feed-tabs button {
+  min-height: 44px;
+  min-width: 44px
+}
+
+.row-bookmark {
+  width: 44px;
+  height: 44px;
+  margin-top: 24px
+}
+
+.reset-discovery,
+.back-button {
+  min-height: 44px
+}
+
+.follow-button {
+  min-height: 44px;
+  padding: 8px 14px
+}
+
+/* Touch screens: every button gets a thumb-sized target, icon-only ones a square one */
+@media (pointer: coarse) {
+  button,
+  [role='button'],
+  summary,
+  select,
+  input[type='button'],
+  input[type='submit'] {
+    min-height: 44px
+  }
+
+  button[aria-label],
+  [role='button'][aria-label] {
+    min-width: 44px
+  }
+}
+
+/* Header on large phones (up to ~440px): same icon-only Community/Profile buttons the
+   smaller phones already use, so five 44px controls fit without cutting anything off. */
+@media (max-width: 440px) {
+  .topbar-actions .profile-button {
+    width: 44px;
+    padding: 0;
+    border-radius: 12px
+  }
+
+  .topbar-actions .profile-button span {
+    display: none
+  }
+}
+
+/* Reader actions and form submit buttons */
+.listen-button,
+.reader-save,
+button[type='submit'] {
+  min-height: 44px
+}
+
+/* Fiction pill: the blue sat 0.05 short of 4.5:1 on its own tinted background */
+.pill-fiction {
+  color: #345f84
+}
+
+/* Photo captions: a small dark backing so white text stays readable on any image, light ones included */
+.gallery-caption {
+  right: auto;
+  max-width: calc(100% - 49px);
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: rgba(24, 14, 32, .72)
+}
+
+/* Links and small buttons on Login, How it works and Community: 44px tall, content centered */
+.creator-back,
+.editorial-brand,
+.editorial-nav-link,
+.editorial-profile,
+.how-write-link,
+.how-cta,
+.community-brand,
+.community-refresh,
+.community-tabs button,
+.community-empty-link,
+.auth-switch button {
+  min-height: 44px;
+  align-items: center
+}
+
+.community-back,
+.community-empty-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px
+}
+
+.auth-switch button {
+  display: inline-flex;
+  padding-inline: 8px
+}
+
+/* Writer studio controls */
+.chapter-tab,
+.add-chapter,
+.creator-primary,
+.creator-secondary,
+select {
+  min-height: 44px
+}
+
+.creator-text-link {
+  min-height: 44px
+}
+
+/* Upload buttons are <label>s wrapping a hidden file input */
+.creator-image-button {
+  min-height: 44px
 }
