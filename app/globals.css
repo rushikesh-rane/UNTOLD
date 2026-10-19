@@ -6959,3 +6959,504 @@ select {
     aspect-ratio: 112 / 142;
   }
 }
+
+
+/* =====================================================================
+   Story cards (Discover feed)
+   Built only on the theme variables (--white, --ink, --line, --purple…), so light and dark both work.
+   Desktop: index | cover | text | bookmark.  Phones: cover beside the title, details underneath.
+   ===================================================================== */
+.story-list {
+  gap: 16px;
+}
+
+.story-card {
+  --card-cover: clamp(120px, 11vw, 176px);
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px var(--card-cover) minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "index cover head save"
+    "index cover rest save";
+  column-gap: clamp(14px, 1.7vw, 26px);
+  padding: clamp(16px, 1.7vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--white);
+  box-shadow: var(--shadow-sm, none);
+  animation: rise-in .6s var(--ease-out) both;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.story-card:hover {
+  border-color: color-mix(in srgb, var(--purple) 38%, var(--line));
+  box-shadow: var(--shadow-md, var(--shadow-sm, none));
+}
+
+.story-card>* {
+  min-width: 0;
+}
+
+.story-card-index {
+  grid-area: index;
+  padding-top: 3px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 13px;
+  opacity: .8;
+}
+
+/* ---- cover ---- */
+.story-card-cover {
+  grid-area: cover;
+  align-self: start;
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  border-radius: 12px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--purple) 24%, var(--white)), color-mix(in srgb, var(--purple) 8%, var(--white)));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .16);
+  cursor: pointer;
+  transition: transform .3s var(--ease-out), box-shadow .3s ease;
+}
+
+.story-card-cover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .22);
+}
+
+.story-card-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-card-cover-fallback {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--purple);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+}
+
+.story-card-cover.no-cover .story-card-cover-fallback {
+  display: flex;
+}
+
+/* ---- head: meta + title ---- */
+.story-card-head {
+  grid-area: head;
+  padding-top: 2px;
+}
+
+.story-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.story-card-meta .category-pill {
+  padding: 4px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  letter-spacing: .08em;
+}
+
+.story-card-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.story-card-chip.is-reveal {
+  color: var(--purple);
+  font-weight: 600;
+}
+
+.story-card-author {
+  white-space: nowrap;
+}
+
+.story-card-author strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.story-card-title {
+  margin: 12px 0 0;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: clamp(24px, 2.4vw, 36px);
+  font-weight: 700;
+  line-height: 1.13;
+  letter-spacing: -.01em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.story-card-title button {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  text-wrap: inherit;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+
+.story-card:hover .story-card-title button {
+  color: var(--purple);
+}
+
+/* ---- rest: tags, blurb, footer ---- */
+.story-card-rest {
+  grid-area: rest;
+  display: flex;
+  flex-direction: column;
+}
+
+.story-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 14px 0 0;
+  color: color-mix(in srgb, var(--ink) 80%, var(--muted));
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.story-card-tags span:not(:last-child)::after {
+  content: '·';
+  margin: 0 .6em;
+  font-weight: 400;
+  opacity: .55;
+}
+
+.story-card-blurb {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  max-width: 74ch;
+  margin: 10px 0 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.story-card-rest>.story-card-blurb:first-child {
+  margin-top: 14px;
+}
+
+.story-card-spacer {
+  flex: 1 1 18px;
+  min-height: 18px;
+}
+
+.story-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.story-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.story-card-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.story-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-left: auto;
+}
+
+.story-card-preview-btn,
+.story-card-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
+}
+
+.story-card-preview-btn {
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
+  font-size: 13.5px;
+}
+
+.story-card-preview-btn:hover,
+.story-card-preview-btn[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--purple) 45%, var(--line));
+  background: color-mix(in srgb, var(--purple) 13%, transparent);
+}
+
+.story-card-open {
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--purple);
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.story-card-open svg {
+  transition: transform .2s ease;
+}
+
+.story-card-open:hover svg {
+  transform: translateX(3px);
+}
+
+/* ---- chapter preview ---- */
+.story-card-preview {
+  margin-top: 14px;
+  padding: 14px 16px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  animation: rise-in .3s var(--ease-out) both;
+}
+
+.story-card-preview-title {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.story-card-preview ol {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.story-card-preview li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+}
+
+.story-card-preview li:first-child {
+  border-top: 0;
+}
+
+.chapter-mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--muted);
+}
+
+.story-card-preview .is-open .chapter-mark {
+  background: color-mix(in srgb, var(--purple) 20%, transparent);
+  color: var(--purple);
+}
+
+.chapter-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  min-width: 0;
+}
+
+.chapter-name strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.chapter-name em {
+  color: var(--muted);
+  font-size: 13.5px;
+  font-style: normal;
+  overflow-wrap: anywhere;
+}
+
+.chapter-action {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--purple);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chapter-status {
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* ---- bookmark ---- */
+.story-card .story-card-save {
+  grid-area: save;
+  align-self: start;
+  margin: 0;
+}
+
+/* ---- tablets / narrow desktop windows ---- */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .story-card {
+    --card-cover: clamp(104px, 14vw, 132px);
+  }
+
+  .story-card-title {
+    font-size: clamp(22px, 3vw, 28px);
+  }
+}
+
+/* ---- phones: cover sits beside the title, everything else uses the full width ---- */
+@media (max-width: 760px) {
+  .story-card {
+    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-areas:
+      "cover head"
+      "rest rest";
+    column-gap: 14px;
+    row-gap: 14px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .story-card-index {
+    display: none;
+  }
+
+  .story-card .story-card-save {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+  }
+
+  .story-card-meta {
+    padding-right: 38px;
+  }
+
+  .story-card-title {
+    margin-top: 8px;
+    font-size: clamp(19px, 5.4vw, 23px);
+  }
+
+  .story-card-meta {
+    gap: 6px 10px;
+    font-size: 12.5px;
+  }
+
+  .story-card-tags,
+  .story-card-blurb {
+    font-size: 14.5px;
+  }
+
+  .story-card-tags {
+    margin-top: 0;
+  }
+
+  .story-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .story-card-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .story-card-preview-btn,
+  .story-card-open {
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .story-card-open {
+    padding: 0 14px;
+    border: 1px solid color-mix(in srgb, var(--purple) 38%, var(--line));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--purple) 12%, transparent);
+  }
+
+  .story-card-preview li {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .story-card-preview .chapter-action,
+  .story-card-preview .chapter-status {
+    grid-column: 2;
+    justify-self: start;
+    padding: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .story-card {
+    grid-template-columns: 78px minmax(0, 1fr);
+    column-gap: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-card,
+  .story-card-preview,
+  .story-card-cover,
+  .story-card-open svg {
+    animation: none;
+    transition: none;
+  }
+}

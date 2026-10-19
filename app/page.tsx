@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, ArrowRight, Bookmark, BookOpen, Check, Clock3,
   Headphones, Heart, Image as ImageIcon, MessageCircle, Pause,
-  Plus, Search, Send, Sparkles, Volume2, X, Home, Compass, Flame, Users, BookmarkCheck, CircleHelp, ChevronRight, UserRound,
+  List, Lock, Plus, Search, Send, Sparkles, Volume2, X, Home, Compass, Flame, Users, BookmarkCheck, CircleHelp, ChevronRight, UserRound,
 } from 'lucide-react';
 import { type Story } from '@/lib/stories';
 import { createClient } from '@/lib/supabase/client';
@@ -99,12 +99,27 @@ function mapCloudStory(item: CloudStory): MediaStory {
   return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: (item.genre ?? '').trim().toUpperCase() || 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 0, publishedAt: item.published_at || undefined, body, parts, upcoming, images, theories: [], audioLabel: 'Listen to the opening' };
 }
 
+// Synopses are often written as "Tag · Tag · Tag · The actual blurb". The card shows the tags and the
+// blurb separately; anything that doesn't follow that pattern is shown as plain blurb text.
+function splitSynopsis(text: string): { tags: string[]; blurb: string } {
+  const clean = text.trim();
+  const pieces = clean.split(/\s+[·•|]\s+/).map((piece) => piece.trim()).filter(Boolean);
+  if (pieces.length < 2) return { tags: [], blurb: clean };
+  const looksLikeLabels = (list: string[]) => list.length <= 6 && list.every((piece) => piece.length <= 32);
+  const last = pieces[pieces.length - 1];
+  const lastIsSentence = last.split(/\s+/).length >= 5;
+  if (lastIsSentence && looksLikeLabels(pieces.slice(0, -1))) return { tags: pieces.slice(0, -1), blurb: last };
+  if (!lastIsSentence && looksLikeLabels(pieces)) return { tags: pieces, blurb: '' };
+  return { tags: [], blurb: clean };
+}
+
 function Avatar({ initials, color }: { initials: string; color: string }) {
   return <span className={`avatar avatar-${color}`}>{initials}</span>;
 }
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState('For you');
+  const [previewOpenId, setPreviewOpenId] = useState<string | null>(null);
   const [activeNav, setActiveNav] = useState('Discover');
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -393,7 +408,6 @@ export default function HomePage() {
           <span className="brand-mark"><BookOpen size={19} strokeWidth={2} /></span>
           <span className="brand-word">un<span>told</span><i>.</i></span>
         </a>
-        <div className="topbar-note"><span className="live-dot" /> STORIES IN PROGRESS</div>
         <div className="topbar-actions">
           <button className="icon-button" aria-label="Search stories" onClick={() => setSearchOpen(!searchOpen)}><Search size={18} /></button>
           <ThemeToggle />
@@ -457,26 +471,27 @@ export default function HomePage() {
                     </button>
                   ))}
                 </div>
-
-                <span className="toolbar-note">
-                  <Sparkles size={13} /> Curiosity, not chronology
-                </span>
               </div>
 
               {filteredStories.length ? (
                 <div className="story-list">
-                  {filteredStories.map((story, index) => (
-                    <article className="story-row" key={story.id}>
-                      <button
-                        className="story-row-main"
-                        onClick={() => openStory(story)}
-                        aria-label={`Read ${story.title}`}
-                      >
-                        <span className="story-index">
+                  {filteredStories.map((story, index) => {
+                    const { tags, blurb } = splitSynopsis(story.excerpt);
+                    const chapterCount = story.parts.length + story.upcoming.length;
+                    const previewOpen = previewOpenId === story.id;
+                    const saved = savedStories.includes(story.id);
+                    return (
+                      <article className="story-card" key={story.id}>
+                        <span className="story-card-index" aria-hidden="true">
                           {String(index + 1).padStart(2, '0')}
                         </span>
 
-                        <span className={`story-row-cover${story.coverUrl ? ' has-cover' : ' no-cover'}`} aria-hidden="true">
+                        <button
+                          type="button"
+                          className={`story-card-cover${story.coverUrl ? '' : ' no-cover'}`}
+                          onClick={() => openStory(story)}
+                          aria-label={`Read ${story.title}`}
+                        >
                           {story.coverUrl ? (
                             <img
                               src={story.coverUrl}
@@ -485,75 +500,107 @@ export default function HomePage() {
                               decoding="async"
                               onError={(event) => {
                                 event.currentTarget.style.display = 'none';
-                                event.currentTarget.parentElement?.classList.add('cover-load-failed');
+                                event.currentTarget.parentElement?.classList.add('no-cover');
                               }}
                             />
                           ) : null}
-                          {!story.coverUrl ? <span className="story-cover-fallback"><BookOpen size={22} /><span>UNTOLD</span></span> : null}
-                        </span>
+                          <span className="story-card-cover-fallback" aria-hidden="true"><BookOpen size={22} /><span>UNTOLD</span></span>
+                        </button>
 
-                        <span className="story-row-copy">
-                          <span className="story-row-meta">
-                            <span
-                              className={`category-pill ${story.category === 'REAL LIFE' ? '' : 'pill-fiction'
-                                }`}
-                            >
+                        <div className="story-card-head">
+                          <div className="story-card-meta">
+                            <span className={`category-pill ${story.category === 'REAL LIFE' ? '' : 'pill-fiction'}`}>
                               {story.category}
                             </span>
+                            <span className="story-card-chip"><Clock3 size={13} /> {story.readTime}</span>
+                            {story.upcoming.length ? (
+                              <span className="story-card-chip is-reveal"><Clock3 size={13} /> {countdownLabel(story.upcoming[0], new Date(nowTick)).text}</span>
+                            ) : null}
+                            <span className="story-card-author">by <strong>{story.author}</strong></span>
+                          </div>
 
-                            <span>
-                              <Clock3 size={13} /> {story.readTime}
-                            </span>
+                          <h3 className="story-card-title">
+                            <button type="button" onClick={() => openStory(story)}>{story.title}</button>
+                          </h3>
+                        </div>
 
-                            {story.upcoming.length ? <span className="story-row-reveal"><Clock3 size={13} /> {countdownLabel(story.upcoming[0], new Date(nowTick)).text}</span> : null}
+                        <div className="story-card-rest">
+                          {tags.length ? (
+                            <p className="story-card-tags">
+                              {tags.map((tag, tagIndex) => (
+                                <span key={`${tag}-${tagIndex}`}>{tag}</span>
+                              ))}
+                            </p>
+                          ) : null}
 
-                            <span className="story-row-author">
-                              by {story.author}
-                            </span>
-                          </span>
+                          {blurb ? <p className="story-card-blurb">{blurb}</p> : null}
 
-                          <strong className="story-row-title">
-                            {story.title}
-                          </strong>
+                          <span className="story-card-spacer" aria-hidden="true" />
 
-                          <span className="story-row-excerpt">
-                            {story.excerpt}
-                          </span>
+                          <div className="story-card-footer">
+                            <div className="story-card-stats">
+                              <span><MessageCircle size={14} /> {story.comments} {story.comments === 1 ? 'theory' : 'theories'}</span>
+                              <span><Heart size={14} /> {story.predictions} {story.predictions === 1 ? 'prediction' : 'predictions'}</span>
+                            </div>
 
-                          <span className="story-row-bottom">
-                            <span>
-                              <MessageCircle size={14} /> {story.comments} theories
-                            </span>
+                            <div className="story-card-actions">
+                              {chapterCount ? (
+                                <button
+                                  type="button"
+                                  className="story-card-preview-btn"
+                                  aria-expanded={previewOpen}
+                                  aria-controls={`story-preview-${story.id}`}
+                                  onClick={() => setPreviewOpenId(previewOpen ? null : story.id)}
+                                >
+                                  <List size={15} /> {previewOpen ? 'Hide Chapters' : 'Preview Chapters'}
+                                </button>
+                              ) : null}
+                              <button type="button" className="story-card-open" onClick={() => openStory(story)}>
+                                Open story <ArrowRight size={15} />
+                              </button>
+                            </div>
+                          </div>
 
-                            <span>
-                              <Heart size={14} /> {story.predictions} predictions
-                            </span>
+                          {previewOpen ? (
+                            <div className="story-card-preview" id={`story-preview-${story.id}`}>
+                              <p className="story-card-preview-title">{chapterCount} {chapterCount === 1 ? 'chapter' : 'chapters'}</p>
+                              <ol>
+                                {story.parts.map((part) => (
+                                  <li key={`part-${part.position}`} className="is-open">
+                                    <span className="chapter-mark"><Check size={12} /></span>
+                                    <span className="chapter-name">
+                                      <strong>Part {part.position}</strong>
+                                      {part.heading ? <em>{part.heading}</em> : null}
+                                    </span>
+                                    <button type="button" className="chapter-action" onClick={() => openStory(story)}>Read</button>
+                                  </li>
+                                ))}
+                                {story.upcoming.map((part) => (
+                                  <li key={`upcoming-${part.position}`} className="is-locked">
+                                    <span className="chapter-mark"><Lock size={12} /></span>
+                                    <span className="chapter-name">
+                                      <strong>Part {part.position}</strong>
+                                      <em>Hidden until it unlocks</em>
+                                    </span>
+                                    <span className="chapter-status">{formatRevealDate(part.revealAt)}</span>
+                                  </li>
+                                ))}
+                              </ol>
+                            </div>
+                          ) : null}
+                        </div>
 
-                            <span className="row-read">
-                              Open story <ArrowRight size={14} />
-                            </span>
-                          </span>
-                        </span>
-                      </button>
-
-                      <button
-                        className={`row-bookmark ${savedStories.includes(story.id) ? 'is-saved' : ''
-                          }`}
-                        aria-label={
-                          savedStories.includes(story.id)
-                            ? 'Remove bookmark'
-                            : 'Bookmark story'
-                        }
-                        onClick={() => toggleSave(story.id)}
-                      >
-                        {savedStories.includes(story.id) ? (
-                          <Check size={17} />
-                        ) : (
-                          <Bookmark size={17} />
-                        )}
-                      </button>
-                    </article>
-                  ))}
+                        <button
+                          type="button"
+                          className={`row-bookmark story-card-save ${saved ? 'is-saved' : ''}`}
+                          aria-label={saved ? 'Remove bookmark' : 'Bookmark story'}
+                          onClick={() => toggleSave(story.id)}
+                        >
+                          {saved ? <Check size={17} /> : <Bookmark size={17} />}
+                        </button>
+                      </article>
+                    );
+                  })}
                 </div>
               ) : !storiesLoaded ? (
                 <StoryListSkeleton />
