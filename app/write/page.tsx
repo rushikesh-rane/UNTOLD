@@ -460,7 +460,7 @@ export default function WritePage() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) throw new Error('Sign in before adding a cover.');
       // Reads the real format, converts phone photos (incl. HEIC where the browser can open them),
-      // and shrinks to a cover-sized WebP/JPEG before the 5 MB bucket limit is checked.
+      // and shrinks to a cover-sized JPEG before the 5 MB bucket limit is checked.
       const upload = await prepareImage(file, { maxSide: 1200 });
       const path = `${user.id}/covers/${randomFileId()}.${upload.ext}`;
       const { error: uploadError } = await supabase.storage.from('story-images').upload(path, upload.blob, {
@@ -481,137 +481,31 @@ export default function WritePage() {
   }
 
   async function insertChapterImage(file?: File) {
-
     if (!file) return;
-
-
-
-    if (!file.type.startsWith('image/')) {
-
-      notify('Choose an image file.');
-
-      return;
-
-    }
-
-
-
-    if (file.size > 5 * 1024 * 1024) {
-
-      notify('Images must be 5 MB or smaller.');
-
-      return;
-
-    }
-
-
-
     setUploadingImage(true);
-
-
-
     try {
-
       const supabase = createClient();
-
-      const {
-
-        data: { user },
-
-        error: authError,
-
-      } = await supabase.auth.getUser();
-
-
-
-      if (authError || !user) {
-
-        throw new Error('Sign in before adding images.');
-
-      }
-
-
-
-      const extension =
-
-        file.name.split('.').pop()?.toLowerCase()
-
-          .replace(/[^a-z0-9]/g, '') || 'jpg';
-
-
-
-      const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
-
-
-
-      const { error: uploadError } = await supabase.storage
-
-        .from('story-images')
-
-        .upload(path, file, {
-
-          contentType: file.type,
-
-          upsert: false,
-
-        });
-
-
-
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) throw new Error('Sign in before adding images.');
+      // Reads the real format, converts phone photos, and resizes big ones before the 5 MB limit applies.
+      const upload = await prepareImage(file, { maxSide: 1600, quality: 0.85 });
+      const path = `${user.id}/${randomFileId()}.${upload.ext}`;
+      const { error: uploadError } = await supabase.storage.from('story-images').upload(path, upload.blob, {
+        contentType: upload.type,
+        upsert: false,
+        cacheControl: '31536000', // file names are unique, so browsers can cache these for a year
+      });
       if (uploadError) throw uploadError;
-
-
-
-      const { data } = supabase.storage
-
-        .from('story-images')
-
-        .getPublicUrl(path);
-
-
-
-      if (!data.publicUrl) {
-
-        throw new Error('Could not create the image URL.');
-
-      }
-
-
-
-      storyEditorRef.current?.insertImage(
-
-        data.publicUrl,
-
-        file.name
-
-      );
-
-
-
+      const { data } = supabase.storage.from('story-images').getPublicUrl(path);
+      if (!data.publicUrl) throw new Error('Could not create the image URL.');
+      storyEditorRef.current?.insertImage(data.publicUrl, file.name.replace(/\.[^.]+$/, '') || 'Story image');
       notify('Image uploaded and inserted into your story.');
-
     } catch (error) {
-
-      notify(
-
-        error instanceof Error
-
-          ? error.message
-
-          : 'Could not upload image. Check the story-images bucket.'
-
-      );
-
+      notify(errorText(error, 'Could not upload image. Check the story-images bucket.'));
     } finally {
-
       setUploadingImage(false);
-
     }
-
   }
-
-
-
   function setChapterTiming(value: string) { setChapters((all) => all.map((item, index) => index !== activeChapter ? item : value === 'now' ? { ...item, reveal: 'now' as const, revealAt: undefined } : { ...item, reveal: 'later' as const, delayDays: clampDays(Number(value)), revealAt: undefined })); }
 
   function updateChapter(key: 'title' | 'body' | 'reveal', value: string) { setChapters((all) => all.map((item, index) => index === activeChapter ? { ...item, [key]: value } : item)); }
@@ -646,7 +540,7 @@ export default function WritePage() {
 
         <div className="chapter-tabs">{chapters.map((item, index) => <button key={item.id} className={activeChapter === index ? 'chapter-tab active' : 'chapter-tab'} onClick={() => setActiveChapter(index)}><FileText size={14} />{item.title || `Part ${index + 1}`}{item.reveal === 'later' && <Clock3 size={12} aria-label="Scheduled" />}<span>{index + 1}</span></button>)}<button className="add-chapter" onClick={() => { const next = [...chapters, makeChapter(chapters.length + 1)]; setChapters(next); setActiveChapter(next.length - 1); }}><Plus size={15} /> Add part</button></div>
 
-        {chapter && <div className="chapter-editor"><label className="creator-label" htmlFor="chapter-name">PART TITLE</label><input id="chapter-name" className="creator-input" value={chapter.title} onChange={(e) => updateChapter('title', e.target.value)} placeholder="The setup" maxLength={80} /><div className="creator-image-toolbar"><label className="creator-label body-label" htmlFor="chapter-body">THE STORY</label><label className={`creator-image-button ${uploadingImage ? 'is-disabled' : ''}`}><ImagePlus size={15} />{uploadingImage ? 'Uploading image…' : 'Insert image'}<input type="file" accept="image/*" disabled={uploadingImage} onChange={(event) => { void insertChapterImage(event.target.files?.[0]); event.currentTarget.value = ''; }} hidden /></label></div>
+        {chapter && <div className="chapter-editor"><label className="creator-label" htmlFor="chapter-name">PART TITLE</label><input id="chapter-name" className="creator-input" value={chapter.title} onChange={(e) => updateChapter('title', e.target.value)} placeholder="The setup" maxLength={80} /><div className="creator-image-toolbar"><label className="creator-label body-label" htmlFor="chapter-body">THE STORY</label><label className={`creator-image-button ${uploadingImage ? 'is-disabled' : ''}`}><ImagePlus size={15} />{uploadingImage ? 'Uploading image…' : 'Insert image'}<input type="file" accept="image/*,.heic,.heif" disabled={uploadingImage} onChange={(event) => { const input = event.currentTarget; void insertChapterImage(input.files?.[0]).finally(() => { input.value = ''; }); }} hidden /></label></div>
 
           <div className="creator-textarea story-editor-wrapper">
 
@@ -666,7 +560,7 @@ export default function WritePage() {
 
           <p className="creator-help">
 
-            Maximum 5 MB per image.
+            Any photo works. Large images are resized automatically.
 
           </p>
 
@@ -677,9 +571,9 @@ export default function WritePage() {
           <div className="editor-foot"><span>{chapter.body.length.toLocaleString()} / 12,000 characters</span><span>Tip: end the part with a question, clue, or contradiction.</span></div><div className="reveal-setting"><div className="reveal-setting-icon"><Clock3 size={17} /></div><div className="reveal-setting-copy"><strong>When should this part go live?</strong><span>{revealCaption(chapter)}</span></div><select aria-label="When this part goes live" value={chapter.reveal === 'now' ? 'now' : String(clampDays(chapter.delayDays ?? 1))} onChange={(e) => setChapterTiming(e.target.value)}><option value="now">Available now</option><optgroup label="Post automatically after publishing">{[1, 2, 3, 4, 5, 6, 7].map((day) => <option key={day} value={String(day)}>In {dayLabel(day)}</option>)}</optgroup></select></div>{chapters.length > 1 && <button className="remove-chapter" onClick={() => { const next = chapters.filter((_, index) => index !== activeChapter); setChapters(next); setActiveChapter(Math.max(0, activeChapter - 1)); }}><Trash2 size={14} /> Remove this part</button>}</div>}
 
         <div className="creator-actions"><button className="creator-secondary" onClick={() => setPreview(true)}><Eye size={16} /> Preview</button><button className="creator-secondary" disabled={busy} onClick={saveDraft}>{busy ? <LoaderCircle size={16} className="auth-spinner" /> : <Save size={16} />} Save draft</button><button className="creator-primary" disabled={busy} onClick={publishStory}>{busy ? <LoaderCircle size={16} className="auth-spinner" /> : <Send size={16} />} {busy ? 'Saving…' : 'Publish story'}</button></div>
-
         <div className="creator-publish-note"><Check size={16} /><p><strong>Cloud-connected workspace.</strong> Your drafts and chapters are stored in Supabase and tied to your signed-in account. Unrevealed chapters are marked separately and protected by database policies.</p></div>
 
+        
       </section>
 
       <aside className="creator-aside"><section className="creator-aside-card creator-guide-card"><span className="aside-icon"><BookOpen size={18} /></span><p className="creator-label">A GOOD UNTOLD STORY</p><h3>Leave a little<br /><em>unsaid.</em></h3><ul><li><span>01</span><div><strong>Open with a moment</strong><p>Start where something changes.</p></div></li><li><span>02</span><div><strong>Plant a clue</strong><p>Give readers something specific to notice.</p></div></li><li><span>03</span><div><strong>Hold back the answer</strong><p>End a part with a reason to return.</p></div></li></ul><Link href="/how-it-works" className="creator-text-link">How UNTOLD works <span>→</span></Link></section>

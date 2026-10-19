@@ -115,7 +115,7 @@ export default function CommunityPage() {
 
   return (
     <main className="community-page">
-      <header className="community-header"><Link href="/" className="community-brand"><BookOpen size={20}/> UNTOLD</Link><Link href="/" className="community-back">← Back to Discover</Link></header>
+      <header className="community-header"><Link href="/" className="brand-lockup" aria-label="UNTOLD home"><span className="brand-mark"><BookOpen size={19} /></span><span className="brand-word">un<span>told</span><i>.</i></span></Link><Link href="/" className="community-back">← Back to Discover</Link></header>
       <section className="community-intro"><p className="community-kicker">YOUR UNTOLD SPACE</p><h1>Stories are better <em>together.</em></h1><p>Keep the stories you love close, follow the people behind them, and share what you think happens next.</p><button className="community-refresh" onClick={() => void refresh()} disabled={busy}><RefreshCw size={15}/> Refresh your space</button></section>
       <nav className="community-tabs" aria-label="Community sections">
         <button className={tab === 'reading-list' ? 'selected' : ''} onClick={() => setTab('reading-list')}><Bookmark size={16}/> Reading list</button>

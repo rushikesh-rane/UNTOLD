@@ -96,7 +96,7 @@ function mapCloudStory(item: CloudStory): MediaStory {
   const { parts, images } = buildReaderParts(item.chapters ?? []);
   const upcoming = buildUpcomingParts(item.upcoming);
   const body = parts.flatMap((part) => part.paragraphs);
-  return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: /real life/i.test(item.genre ?? '') ? 'REAL LIFE' : 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 0, publishedAt: item.published_at || undefined, body, parts, upcoming, images, theories: [], audioLabel: 'Listen to the opening' };
+  return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: (item.genre ?? '').trim().toUpperCase() || 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 0, publishedAt: item.published_at || undefined, body, parts, upcoming, images, theories: [], audioLabel: 'Listen to the opening' };
 }
 
 function Avatar({ initials, color }: { initials: string; color: string }) {
@@ -218,7 +218,7 @@ export default function HomePage() {
     if (target) void openStory(target);
   }, [storiesLoaded, publishedStories]);
   const filteredStories = useMemo(() => allStories.filter((story) => {
-    const haystack = `${story.title} ${story.excerpt} ${story.category} ${story.author} ${story.body.join(' ')}`.toLowerCase();
+    const haystack = `${story.title} ${story.excerpt} ${story.category} ${story.category === 'REAL LIFE' ? '' : 'fiction'} ${story.author} ${story.body.join(' ')}`.toLowerCase();
     const matchesSearch = haystack.includes(searchTerm.toLowerCase());
     const isTrending = story.predictions + story.comments > 0;
     const matchesTab = activeTab === 'For you' || (activeTab === 'Trending' ? isTrending : activeTab === 'New' ? isRecentlyPublished(story.publishedAt) : true);
@@ -495,10 +495,10 @@ export default function HomePage() {
                         <span className="story-row-copy">
                           <span className="story-row-meta">
                             <span
-                              className={`category-pill ${story.category === 'FICTION' ? 'pill-fiction' : ''
+                              className={`category-pill ${story.category === 'REAL LIFE' ? '' : 'pill-fiction'
                                 }`}
                             >
-                              {story.category === 'FICTION' ? 'FICTION' : 'REAL LIFE'}
+                              {story.category}
                             </span>
 
                             <span>
@@ -612,7 +612,7 @@ export default function HomePage() {
         <div className="reader-page">
           <button className="back-button" onClick={() => { if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel(); setIsSpeaking(false); setSelectedStory(null); }}><ArrowLeft size={16} /> Back to stories</button>
           <article className="reader-article">
-            <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'FICTION' ? 'pill-fiction' : ''}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>{selectedStory.parts.length > 1 ? `${selectedStory.parts.length} PARTS` : 'ONE PART'}</span></div>
+            <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'REAL LIFE' ? '' : 'pill-fiction'}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>{selectedStory.parts.length > 1 ? `${selectedStory.parts.length} PARTS` : 'ONE PART'}</span></div>
             <h1 className="reader-title">{selectedStory.title}</h1>
             <p className="reader-deck">{selectedStory.excerpt}</p>
             <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div>{!(currentUserId && selectedStory.authorId === currentUserId) && <button className={`follow-button${selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? ' is-following' : ''}`} aria-pressed={Boolean(selectedStory.authorId && followedIds.includes(selectedStory.authorId))} onClick={() => void toggleFollow(selectedStory)}>{selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? <>Following <Check size={13} /></> : <>Follow <Plus size={13} /></>}</button>}</div>

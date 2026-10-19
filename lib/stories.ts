@@ -1,6 +1,6 @@
 export type Story = {
   id: string;
-  category: 'REAL LIFE' | 'FICTION';
+  category: string; // the story's genre, upper-cased (e.g. 'MYSTERY', 'REAL LIFE')
   title: string;
   excerpt: string;
   author: string;
