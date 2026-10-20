@@ -511,14 +511,18 @@ export default function HomePage() {
 
                         <div className="story-card-head">
                           <div className="story-card-meta">
-                            <span className={`category-pill ${story.category === 'REAL LIFE' ? '' : 'pill-fiction'}`}>
-                              {story.category}
+                            <span className="story-card-kicker">
+                              <span className={`category-pill ${story.category === 'REAL LIFE' ? '' : 'pill-fiction'}`}>
+                                {story.category}
+                              </span>
+                              <span className="story-card-chip"><Clock3 size={13} /> {story.readTime}</span>
                             </span>
-                            <span className="story-card-chip"><Clock3 size={13} /> {story.readTime}</span>
-                            {story.upcoming.length ? (
-                              <span className="story-card-chip is-reveal"><Clock3 size={13} /> {countdownLabel(story.upcoming[0], new Date(nowTick)).text}</span>
-                            ) : null}
-                            <span className="story-card-author">by <strong>{story.author}</strong></span>
+                            <span className="story-card-byline">
+                              {story.upcoming.length ? (
+                                <span className="story-card-chip is-reveal"><Clock3 size={13} /> {countdownLabel(story.upcoming[0], new Date(nowTick)).text}</span>
+                              ) : null}
+                              <span className="story-card-author">by <strong>{story.author}</strong></span>
+                            </span>
                           </div>
 
                           <h3 className="story-card-title">
@@ -541,8 +545,8 @@ export default function HomePage() {
 
                           <div className="story-card-footer">
                             <div className="story-card-stats">
-                              <span><MessageCircle size={14} /> {story.comments} {story.comments === 1 ? 'theory' : 'theories'}</span>
-                              <span><Heart size={14} /> {story.predictions} {story.predictions === 1 ? 'prediction' : 'predictions'}</span>
+                              <span title={`${story.comments} ${story.comments === 1 ? 'theory' : 'theories'}`}><MessageCircle size={14} /> {story.comments}<span className="stat-label"> {story.comments === 1 ? 'theory' : 'theories'}</span></span>
+                              <span title={`${story.predictions} ${story.predictions === 1 ? 'prediction' : 'predictions'}`}><Heart size={14} /> {story.predictions}<span className="stat-label"> {story.predictions === 1 ? 'prediction' : 'predictions'}</span></span>
                             </div>
 
                             <div className="story-card-actions">
@@ -551,10 +555,11 @@ export default function HomePage() {
                                   type="button"
                                   className="story-card-preview-btn"
                                   aria-expanded={previewOpen}
+                                  aria-label={previewOpen ? 'Hide chapters' : 'Preview chapters'}
                                   aria-controls={`story-preview-${story.id}`}
                                   onClick={() => setPreviewOpenId(previewOpen ? null : story.id)}
                                 >
-                                  <List size={15} /> {previewOpen ? 'Hide Chapters' : 'Preview Chapters'}
+                                  <List size={15} /> <span className="btn-label"><span className="btn-verb">{previewOpen ? 'Hide' : 'Preview'} </span>Chapters</span>
                                 </button>
                               ) : null}
                               <button type="button" className="story-card-open" onClick={() => openStory(story)}>

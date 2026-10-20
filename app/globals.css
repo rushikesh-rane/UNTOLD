@@ -6309,6 +6309,16 @@ select {
   font-weight: 700;
 }
 
+/* wrappers exist only so phones can regroup the small details; on larger screens they add no box */
+.story-card-kicker,
+.story-card-byline {
+  display: contents;
+}
+
+.btn-verb {
+  display: inline;
+}
+
 .story-card-title {
   margin: 12px 0 0;
   color: var(--ink);
@@ -6572,20 +6582,24 @@ select {
   }
 }
 
-/* ---- phones: cover sits beside the title, everything else uses the full width ---- */
+/* ---- phones ----
+   Priorities: the title is the star. Genre + read time sit in one small line above it, author + countdown in one
+   small line below it. Tags are hidden (they repeat the genre and blurb), the blurb is cut to two lines, and the
+   footer is a single row: icon counts on the left, "Chapters" and "Open story" on the right. */
 @media (max-width: 760px) {
   .story-card {
-    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-columns: 88px minmax(0, 1fr);
     grid-template-areas:
       "cover head"
       "rest rest";
     column-gap: 14px;
-    row-gap: 14px;
+    row-gap: 12px;
     padding: 14px;
     border-radius: 16px;
   }
 
-  .story-card-index {
+  .story-card-index,
+  .story-card-tags {
     display: none;
   }
 
@@ -6595,69 +6609,150 @@ select {
     right: 6px;
   }
 
+  /* head: kicker, title, byline stacked */
+  .story-card-head {
+    display: flex;
+    flex-direction: column;
+    padding-top: 0;
+  }
+
   .story-card-meta {
-    padding-right: 38px;
+    display: contents;
+  }
+
+  .story-card-kicker {
+    order: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    padding-right: 38px; /* clear of the bookmark button */
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .story-card-meta .category-pill {
+    padding: 3px 7px;
+    font-size: 10px;
   }
 
   .story-card-title {
+    order: 2;
     margin-top: 8px;
-    font-size: clamp(19px, 5.4vw, 23px);
+    font-size: clamp(22px, 6.3vw, 26px);
+    line-height: 1.14;
+    letter-spacing: -.012em;
   }
 
-  .story-card-meta {
-    gap: 6px 10px;
+  .story-card-byline {
+    order: 3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px 10px;
+    margin-top: 8px;
     font-size: 12.5px;
+    line-height: 1.35;
   }
 
-  .story-card-tags,
+  .story-card-author {
+    order: 1;
+  }
+
+  .story-card-byline .story-card-chip.is-reveal {
+    order: 2;
+    white-space: normal;
+  }
+
+  /* rest: short blurb, one-row footer */
   .story-card-blurb {
-    font-size: 14.5px;
+    -webkit-line-clamp: 2;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
-  .story-card-tags {
-    margin-top: 0;
+  .story-card-spacer {
+    flex-basis: 12px;
+    min-height: 12px;
   }
 
   .story-card-footer {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding-top: 12px;
+  }
+
+  .story-card-stats {
+    flex-wrap: nowrap;
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .story-card-stats .stat-label,
+  .story-card-preview-btn .btn-verb {
+    display: none;
   }
 
   .story-card-actions {
-    width: 100%;
-    margin-left: 0;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-left: auto;
   }
 
   .story-card-preview-btn,
   .story-card-open {
-    flex: 1 1 0;
+    flex: none;
+    min-height: 40px;
     justify-content: center;
-    min-height: 44px;
+    padding: 0 13px;
+    font-size: 13.5px;
   }
 
   .story-card-open {
-    padding: 0 14px;
     border: 1px solid color-mix(in srgb, var(--purple) 38%, var(--line));
     border-radius: 10px;
     background: color-mix(in srgb, var(--purple) 12%, transparent);
   }
 
+  .story-card-preview {
+    padding: 12px 14px 6px;
+  }
+
   .story-card-preview li {
     grid-template-columns: 24px minmax(0, 1fr);
+    gap: 4px 10px;
   }
 
   .story-card-preview .chapter-action,
   .story-card-preview .chapter-status {
     grid-column: 2;
     justify-self: start;
+    min-height: 0;
     padding: 0;
   }
 }
 
+/* very small phones: smaller cover, chapters button becomes icon-only so the row never overflows */
 @media (max-width: 380px) {
   .story-card {
-    grid-template-columns: 78px minmax(0, 1fr);
+    grid-template-columns: 76px minmax(0, 1fr);
     column-gap: 12px;
+    padding: 12px;
+  }
+
+  .story-card-title {
+    font-size: clamp(20px, 6.2vw, 23px);
+  }
+}
+
+@media (max-width: 350px) {
+  .story-card-preview-btn .btn-label {
+    display: none;
+  }
+
+  .story-card-preview-btn {
+    padding: 0 12px;
   }
 }
 
