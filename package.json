@@ -7,20 +7,22 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test:reader": "node --experimental-strip-types scripts/test-reader.mts"
+    "test:reader": "node --experimental-strip-types scripts/test-reader.mts",
+    "test:security": "node --experimental-strip-types scripts/test-security.mts",
+    "test": "npm run test:reader && npm run test:security"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.57.0",
+    "@supabase/supabase-js": "^2.117.3",
     "@tiptap/extension-image": "^3.32.0",
     "@tiptap/markdown": "^3.32.0",
     "@tiptap/pm": "^3.32.0",
     "@tiptap/react": "^3.32.0",
     "@tiptap/starter-kit": "^3.32.0",
     "lucide-react": "^0.468.0",
-    "next": "^15.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "next": "^15.5.27",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",

@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { guard } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = await guard(request, { scope: 'stories:read', limit: 120, windowSec: 60 });
+  if (limited) return limited;
+
   try {
     const supabase = await createClient();
     const { data: stories, error } = await supabase.from('stories').select(`
       id,title,genre,synopsis,cover_url,author_id,published_at,
       author:profiles!stories_author_id_fkey(display_name, username),
       chapters(id,title,body,position,is_revealed,reveal_at)
-    `).eq('status', 'published').order('published_at', { ascending: false, nullsFirst: false });
+    `).eq('status', 'published').order('published_at', { ascending: false, nullsFirst: false })
+      .limit(200); // the feed is capped so a single request can never pull an unbounded amount of data
 
     if (error) {
       return NextResponse.json({ error: 'Could not load published stories.', stories: [] }, { status: 500 });

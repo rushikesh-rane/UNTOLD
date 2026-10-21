@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, UserRound } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { escapeLike } from '@/lib/security';
 
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -38,7 +39,7 @@ export default async function FollowListPage({
 
   const { data: owner } = UUID.test(routeKey)
     ? await ownerQuery.eq('id', routeKey).maybeSingle()
-    : await ownerQuery.ilike('username', routeKey).maybeSingle();
+    : await ownerQuery.ilike('username', escapeLike(routeKey)).maybeSingle();
 
   if (!owner) {
     notFound();

@@ -1,21 +1,40 @@
 
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { safeNextPath } from '@/lib/security';
 
 const isPublicPath = (pathname: string) =>
   pathname === '/login' ||
   pathname === '/auth/callback' ||
   pathname === '/demo-access';
 
-export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+type CspContext = { nonce: string; csp: string };
+
+export async function updateSession(request: NextRequest, context?: CspContext) {
+  // Next.js reads the nonce from the *request's* content-security-policy header and stamps it on its inline
+  // scripts. Build the headers fresh each time so cookie updates made below are carried along too.
+  const forwardedHeaders = () => {
+    const headers = new Headers(request.headers);
+    if (context) {
+      headers.set('x-nonce', context.nonce);
+      headers.set('content-security-policy', context.csp);
+    }
+    return headers;
+  };
+
+  let response = NextResponse.next({ request: { headers: forwardedHeaders() } });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Allow the app to load when Supabase environment variables
-  // have not been configured yet.
-  if (!url || !key) return response;
+  if (!url || !key) {
+    // In production a missing setting must never mean "let everyone in": refuse to serve instead (fail closed).
+    if (process.env.NODE_ENV === 'production') {
+      return new NextResponse('This site is not configured yet.', { status: 503, headers: { 'Cache-Control': 'no-store' } });
+    }
+    // In development, allow the app to load before Supabase has been set up.
+    return response;
+  }
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -34,7 +53,7 @@ export async function updateSession(request: NextRequest) {
           request.cookies.set(name, value);
         });
 
-        response = NextResponse.next({ request });
+        response = NextResponse.next({ request: { headers: forwardedHeaders() } });
 
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
@@ -57,8 +76,11 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname, search } = request.nextUrl;
 
+  // The demo bypass skips sign-in entirely, so it is hard-disabled in production builds even if the
+  // environment variable is set by mistake.
   const localDemoEnabled =
-    process.env.UNTOLD_LOCAL_DEMO_MODE === 'true';
+    process.env.UNTOLD_LOCAL_DEMO_MODE === 'true' &&
+    process.env.NODE_ENV !== 'production';
 
   const isLocalDemo =
     localDemoEnabled &&
@@ -75,14 +97,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   if ((user || isLocalDemo) && pathname === '/login') {
-    const requestedNext = request.nextUrl.searchParams.get('next');
-
-    const safeNext =
-      requestedNext &&
-      requestedNext.startsWith('/') &&
-      !requestedNext.startsWith('//')
-        ? requestedNext
-        : '/';
+    const safeNext = safeNextPath(request.nextUrl.searchParams.get('next'));
 
     return NextResponse.redirect(new URL(safeNext, request.url));
   }

@@ -6,6 +6,13 @@ import { Suspense, type FormEvent, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, BookOpen, LoaderCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import Turnstile from '@/components/Turnstile';
+import { safeNextPath } from '@/lib/security';
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const MIN_PASSWORD_LENGTH = 10;
+const MAX_FAILED_ATTEMPTS = 5;
+const COOL_DOWN_SECONDS = 30;
 
 function LoginForm() {
   const router = useRouter();
@@ -17,24 +24,59 @@ function LoginForm() {
   const [displayName, setDisplayName] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState(0);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy(true);
     setNotice('');
+
+    // A short cool-down after repeated failures. (Supabase enforces the real limits server-side; this just
+    // slows down a script or a person guessing passwords from this page.)
+    const waitSeconds = Math.ceil((lockedUntil - Date.now()) / 1000);
+    if (waitSeconds > 0) {
+      setNotice(`Too many attempts. Please wait ${waitSeconds} seconds and try again.`);
+      return;
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (mode === 'signup') {
+      if (password.length < MIN_PASSWORD_LENGTH) {
+        setNotice(`Choose a password of at least ${MIN_PASSWORD_LENGTH} characters.`);
+        return;
+      }
+      if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+        setNotice('Your password needs at least one letter and one number.');
+        return;
+      }
+      if (password.toLowerCase().includes(cleanEmail.split('@')[0]) && cleanEmail.split('@')[0].length >= 4) {
+        setNotice('Your password should not contain your email name.');
+        return;
+      }
+    }
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setNotice('Please wait for the security check to finish, then try again.');
+      return;
+    }
+
+    setBusy(true);
 
     try {
       const supabase = createClient();
+      const captchaOptions = captchaToken ? { captchaToken } : {};
 
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: {
             data: {
-              display_name: displayName.trim() || 'Reader',
+              display_name: displayName.trim().slice(0, 60) || 'Reader',
             },
             emailRedirectTo: `${window.location.origin}/auth/callback`,
+            ...captchaOptions,
           },
         });
 
@@ -45,23 +87,26 @@ function LoginForm() {
         );
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: cleanEmail,
           password,
+          options: { ...captchaOptions },
         });
 
         if (error) throw error;
 
-        const requestedNext = searchParams.get('next');
-        const safeNext =
-          requestedNext?.startsWith('/') &&
-            !requestedNext.startsWith('//')
-            ? requestedNext
-            : '/';
-
-        router.push(safeNext);
+        setFailedAttempts(0);
+        router.push(safeNextPath(searchParams.get('next')));
         router.refresh();
       }
     } catch (error) {
+      if (mode === 'signin') {
+        const attempts = failedAttempts + 1;
+        setFailedAttempts(attempts);
+        if (attempts >= MAX_FAILED_ATTEMPTS) {
+          setLockedUntil(Date.now() + COOL_DOWN_SECONDS * 1000);
+          setFailedAttempts(0);
+        }
+      }
       setNotice(
         error instanceof Error
           ? error.message
@@ -69,6 +114,8 @@ function LoginForm() {
       );
     } finally {
       setBusy(false);
+      // A CAPTCHA token works once, so ask for a fresh one for the next attempt.
+      if (TURNSTILE_SITE_KEY) setCaptchaReset((value) => value + 1);
     }
   }
 
@@ -144,13 +191,18 @@ function LoginForm() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              minLength={8}
+              minLength={mode === 'signup' ? MIN_PASSWORD_LENGTH : undefined}
+              maxLength={128}
               autoComplete={
                 mode === 'signin' ? 'current-password' : 'new-password'
               }
-              placeholder="At least 8 characters"
+              placeholder={mode === 'signup' ? `At least ${MIN_PASSWORD_LENGTH} characters, with a letter and a number` : 'Your password'}
             />
           </label>
+
+          {TURNSTILE_SITE_KEY ? (
+            <Turnstile siteKey={TURNSTILE_SITE_KEY} onToken={setCaptchaToken} resetKey={captchaReset} />
+          ) : null}
 
           <button
             className="creator-primary auth-submit"

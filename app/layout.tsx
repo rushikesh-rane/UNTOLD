@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { headers } from 'next/headers';
 import { DM_Mono, DM_Sans, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import './dark-theme.css';
@@ -43,16 +44,21 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
 };
 
-// Runs before first paint so the saved (or system) theme is applied with no flash.
-const themeInitScript = `(function(){try{var t=localStorage.getItem('untold-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}var d=document.documentElement;d.dataset.theme=t;d.style.colorScheme=t;document.addEventListener('DOMContentLoaded',function(){var c=t==='dark'?'#121116':'#f8f7f4';document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.removeAttribute('media');m.setAttribute('content',c)})})}catch(e){}})();`;
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Reading the request headers makes every page render per request. That is required for the
+  // Content-Security-Policy: its nonce (set in middleware.ts) is different on every request, and Next.js
+  // can only stamp it on its scripts when the page is rendered for that request.
+  await headers();
+
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* Applies the saved theme before first paint. A file (public/theme-init.js), not inline code, so the CSP stays strict. */}
+        {/* Synchronous on purpose: it must run before the first paint to avoid a flash of the wrong theme. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/theme-init.js" />
       </head>
       <body>
         <NavigationProgress />

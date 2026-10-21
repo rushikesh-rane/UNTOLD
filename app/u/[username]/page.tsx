@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, BookOpen, UserRound, Users, CalendarDays } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import ProfileFollowButton from './follow-button';
+import { escapeLike } from '@/lib/security';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -12,7 +13,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   const profileQuery = supabase.from('profiles').select('id,username,display_name,bio,avatar_url,created_at');
   const { data: profile, error: profileError } = UUID.test(routeKey)
     ? await profileQuery.eq('id', routeKey).maybeSingle()
-    : await profileQuery.ilike('username', routeKey).maybeSingle();
+    : await profileQuery.ilike('username', escapeLike(routeKey)).maybeSingle();
   if (profileError || !profile) notFound();
 
   const [{ count: followers }, { count: following }, { data: stories }, { data: { user } }] = await Promise.all([
