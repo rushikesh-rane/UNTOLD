@@ -84,6 +84,10 @@ export function dbFailure(error: { code?: string; message?: string } | null | un
   if (/rate_limit_exceeded/i.test(message)) {
     return fail('You are doing that too quickly. Please wait a moment and try again.', 429, { 'Retry-After': '30' });
   }
+  // The prediction functions in the database write their own plain-English messages, marked with "poll: ".
+  // Those are written to be shown to people as they are, unlike raw database errors.
+  const friendly = message.match(/^poll: ([\s\S]{1,300})$/);
+  if (friendly) return fail(friendly[1], 400);
   if (code === '42501') return fail('You do not have permission to do that.', 403);
   if (code === '23505') return fail('That already exists.', 409);
   if (code === '23503') return fail('That item no longer exists.', 404);

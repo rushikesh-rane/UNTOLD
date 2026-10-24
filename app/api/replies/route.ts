@@ -35,10 +35,11 @@ export async function POST(request: Request) {
 
   const body = await readJson(request, 4_000);
   const text = cleanText(body?.body, 1, 1000);
-  if (!body || (body.kind !== 'theory' && body.kind !== 'prediction') || !isUuid(body.parentId) || !isUuid(body.storyId) || !text) {
-    return fail('A valid parent, story, and reply of 1–1000 characters are required.', 400);
+  // Replies are for theories now. (Old free-text predictions can still be read, but no longer get new replies.)
+  if (!body || body.kind !== 'theory' || !isUuid(body.parentId) || !isUuid(body.storyId) || !text) {
+    return fail('A valid theory, story, and reply of 1–1000 characters are required.', 400);
   }
-  const record = { user_id: user.id, story_id: body.storyId, theory_id: body.kind === 'theory' ? body.parentId : null, prediction_id: body.kind === 'prediction' ? body.parentId : null, body: text };
+  const record = { user_id: user.id, story_id: body.storyId, theory_id: body.parentId, prediction_id: null, body: text };
   const { data, error } = await supabase.from('replies').insert(record).select('id,user_id,story_id,theory_id,prediction_id,body,created_at').single();
   if (error) return dbFailure(error, 'Could not post your reply.');
   return json({ reply: data }, 201);

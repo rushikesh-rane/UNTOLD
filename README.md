@@ -7,8 +7,9 @@ Built with Next.js (App Router), React, TypeScript, Supabase (auth, Postgres, st
 ## Features
 
 - **Discover feed** with For you / Trending / New tabs, search, mood filters, bookmarks, and story cards that can preview a story's chapters (locked parts show only a release date).
-- **Story reader** with scheduled part releases, image gallery, browser narration (Web Speech API), author profiles, follow, theories with replies and votes, and predictions.
-- **Creator Studio** (`/write`) with a rich-text editor, cover and inline image uploads, genre selection, drafts, and per-part "available now / reveal later" scheduling.
+- **Story reader** with scheduled part releases, image gallery, browser narration (Web Speech API), author profiles and follow.
+- **Theories vs predictions.** *Theories* are free-text ideas about what is really going on, based on what you have read so far, with likes and replies. *Predictions* are an optional, author-controlled poll: the author writes a "what happens next?" question and chooses the options (2 to 6). Readers pick one and can change it until voting closes; after the next part the author reveals the real answer and everyone sees who called it. Readers keep a record of their picks under Community → Predictions.
+- **Creator Studio** (`/write`) with a rich-text editor, cover and inline image uploads, genre selection, drafts, per-part "available now / reveal later" scheduling, and the optional prediction setup.
 - **Community** (`/community`), **public profiles** (`/u/<username>`) with followers and following lists, and an **Account** page with profile photo and bio.
 - **Light and dark themes**, a top loading bar, and responsive layouts from phones to wide monitors.
 
@@ -31,11 +32,12 @@ Other commands:
 | `npm test` | Runs all checks below |
 | `npm run test:reader` | Unit checks for the part-release logic in `lib/reader.ts` |
 | `npm run test:security` | Checks for safe redirects, rate limiting, input validation and the Content-Security-Policy |
+| `npm run test:polls` | Checks for the rules on what an author can submit as a prediction |
 
 ## Supabase setup
 
 1. **Create a project** at <https://supabase.com/dashboard>. In Project Settings → API, copy the Project URL and the publishable (anon) key into `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Never put a `service_role` key in a `NEXT_PUBLIC_` variable.
-2. **Run the migrations in order** in the SQL Editor, everything in `supabase/migrations/`, oldest first (`202610110001_…` through `202610200001_security_hardening.sql`).
+2. **Run the migrations in order** in the SQL Editor, everything in `supabase/migrations/`, oldest first (`202610110001_…` through `202610210001_prediction_polls.sql`).
 3. **Auth URLs:** under Authentication → URL Configuration, set the Site URL and add `http://localhost:3000/auth/callback` (and your production callback URL) to Redirect URLs.
 4. **Check the `story-images` storage bucket** (Storage → `story-images`). The migration creates it as public with a 5 MB limit and these allowed types: JPEG, PNG, WebP and GIF. If you created the bucket by hand, make sure its allowed types match, because uploads fail with "mime type … is not supported" otherwise. The app converts uploaded photos to JPEG in the browser, so JPEG must always be allowed.
 
@@ -59,6 +61,7 @@ lib/
   api.ts             Shared API guard: CSRF check, rate limit, body parsing, safe errors
   rate-limit.ts      Rate limiter (in-memory, or shared via Upstash Redis)
   security.ts        Safe redirects, ID validation, text cleaning
+  polls.ts           Prediction types and input validation
   csp.ts             Content-Security-Policy builder
   image-upload.ts    Reads, converts and resizes photos before upload (phone gallery safe)
   reader.ts          Part-release and countdown logic

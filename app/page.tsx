@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/client';
 import { buildReaderParts, buildUpcomingParts, countdownLabel, formatRevealDate, isRecentlyPublished, partsToPlainText, type ReaderPart, type UpcomingPart } from '@/lib/reader';
 import ThemeToggle from '@/components/ThemeToggle';
 import { StoryListSkeleton, TheorySkeleton } from '@/components/Skeletons';
+import PredictionCard from '@/components/PredictionCard';
 
 type CloudAuthor = {
   display_name?: string | null;
@@ -131,7 +132,7 @@ export default function HomePage() {
   const [replyBusy, setReplyBusy] = useState(false);
   const likeBusy = useRef<Set<string>>(new Set());
   const [selectedStory, setSelectedStory] = useState<MediaStory | null>(null);
-  const [prediction, setPrediction] = useState('');
+  const [theoryDraft, setTheoryDraft] = useState('');
   const [storiesLoaded, setStoriesLoaded] = useState(false);
   const [discussionLoading, setDiscussionLoading] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
@@ -307,7 +308,7 @@ export default function HomePage() {
   async function openStory(story: MediaStory) {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     setIsSpeaking(false);
-    setPrediction('');
+    setTheoryDraft('');
     setReplyingTo(null);
     setReplyDraft('');
     setDiscussionLoading(true);
@@ -380,14 +381,14 @@ export default function HomePage() {
     setIsSpeaking(true);
   }
 
-  async function submitPrediction() {
-    if (!selectedStory || prediction.trim().length < 8) return;
+  async function submitTheory() {
+    if (!selectedStory || theoryDraft.trim().length < 8) return;
     try {
-      const response = await fetch('/api/theories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId: selectedStory.id, body: prediction.trim() }) });
+      const response = await fetch('/api/theories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId: selectedStory.id, body: theoryDraft.trim() }) });
       const result = await response.json();
       if (!response.ok) { showNotice(result.error || 'Sign in to submit a theory.'); return; }
     } catch { showNotice('Could not submit your theory.'); return; }
-    setPrediction('');
+    setTheoryDraft('');
     await loadDiscussion(selectedStory.id);
     showNotice('Your theory was shared with UNTOLD readers.');
   }
@@ -686,7 +687,9 @@ export default function HomePage() {
               </div>;
             })}</section> : null}
             {selectedStory.images.length ? <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} loading="lazy" decoding="async" /><span className="gallery-caption">{image.caption}</span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section> : null}
-            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2></div><span>{selectedStory.theories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); submitPrediction(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={prediction} onChange={(event) => setPrediction(event.target.value)} placeholder="I think the detail that matters is…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{prediction.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={prediction.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{discussionLoading && !selectedStory.theories.length ? <TheorySkeleton /> : null}{selectedStory.theories.map((theory) => {
+            <PredictionCard storyId={selectedStory.id} signedIn={Boolean(currentUserId)} onNotice={showNotice} />
+
+            <section className="theory-section"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow">THE THEORY ROOM</p><h2>What do you <em>think?</em></h2><p className="theory-intro">Share your own idea about what is really going on, based on what you have read so far.</p></div><span>{selectedStory.theories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); void submitTheory(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={theoryDraft} onChange={(event) => setTheoryDraft(event.target.value)} placeholder="Based on what I've read, I think…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{theoryDraft.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={theoryDraft.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{discussionLoading && !selectedStory.theories.length ? <TheorySkeleton /> : null}{selectedStory.theories.map((theory) => {
               const liked = Boolean(likedTheories[theory.id]);
               const isReplying = replyingTo === theory.id;
               return <article className="theory-card" key={theory.id}>

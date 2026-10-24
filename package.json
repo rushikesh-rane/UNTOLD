@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "test:reader": "node --experimental-strip-types scripts/test-reader.mts",
     "test:security": "node --experimental-strip-types scripts/test-security.mts",
-    "test": "npm run test:reader && npm run test:security"
+    "test": "npm run test:reader && npm run test:security && npm run test:polls",
+    "test:polls": "node --experimental-strip-types scripts/test-polls.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

@@ -34,12 +34,19 @@ export async function GET(request: Request) {
     try {
       const ids = visibleStories.map((story) => story.id);
       if (ids.length) {
-        const [theoryRows, predictionRows] = await Promise.all([
+        const [theoryRows, predictionTotals] = await Promise.all([
           supabase.from('theories').select('story_id').in('story_id', ids),
-          supabase.from('predictions').select('story_id').in('story_id', ids),
+          supabase.rpc('prediction_vote_totals', { p_story_ids: ids }),
         ]);
         for (const row of (theoryRows.data ?? []) as { story_id: string }[]) theoryCounts[row.story_id] = (theoryCounts[row.story_id] ?? 0) + 1;
-        for (const row of (predictionRows.data ?? []) as { story_id: string }[]) predictionCounts[row.story_id] = (predictionCounts[row.story_id] ?? 0) + 1;
+        if (!predictionTotals.error) {
+          // "Predictions" are now readers' picks on the author's prediction poll.
+          for (const row of (predictionTotals.data ?? []) as { story_id: string; total: number | string }[]) predictionCounts[row.story_id] = Number(row.total);
+        } else {
+          // The prediction migration has not been applied yet: fall back to the old free-text predictions.
+          const legacy = await supabase.from('predictions').select('story_id').in('story_id', ids);
+          for (const row of (legacy.data ?? []) as { story_id: string }[]) predictionCounts[row.story_id] = (predictionCounts[row.story_id] ?? 0) + 1;
+        }
       }
     } catch { /* Counts stay at zero. */ }
     // Scheduled parts: only the part number and release time, never the text (see upcoming_chapters()).

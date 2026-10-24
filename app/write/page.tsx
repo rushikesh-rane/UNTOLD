@@ -16,6 +16,7 @@ import { createClient } from '@/lib/supabase/client';
 import { errorText, prepareImage, randomFileId } from '@/lib/image-upload';
 
 import { ArrowLeft, BookOpen, Check, ChevronDown, Clock3, Eye, FileText, ImagePlus, LoaderCircle, Plus, Save, Send, Sparkles, Trash2 } from 'lucide-react';
+import PredictionStudio from '@/components/PredictionStudio';
 
 
 
@@ -569,6 +570,10 @@ export default function WritePage() {
 
 
           <div className="editor-foot"><span>{chapter.body.length.toLocaleString()} / 12,000 characters</span><span>Tip: end the part with a question, clue, or contradiction.</span></div><div className="reveal-setting"><div className="reveal-setting-icon"><Clock3 size={17} /></div><div className="reveal-setting-copy"><strong>When should this part go live?</strong><span>{revealCaption(chapter)}</span></div><select aria-label="When this part goes live" value={chapter.reveal === 'now' ? 'now' : String(clampDays(chapter.delayDays ?? 1))} onChange={(e) => setChapterTiming(e.target.value)}><option value="now">Available now</option><optgroup label="Post automatically after publishing">{[1, 2, 3, 4, 5, 6, 7].map((day) => <option key={day} value={String(day)}>In {dayLabel(day)}</option>)}</optgroup></select></div>{chapters.length > 1 && <button className="remove-chapter" onClick={() => { const next = chapters.filter((_, index) => index !== activeChapter); setChapters(next); setActiveChapter(Math.max(0, activeChapter - 1)); }}><Trash2 size={14} /> Remove this part</button>}</div>}
+
+        <div className="creator-step-heading creator-prediction-heading"><span>03</span><div><h2>Let readers predict</h2><p>Optional. Ask what happens next and choose the answers readers can pick.</p></div></div>
+
+        <PredictionStudio storyId={activeStoryId} published={activeStoryStatus === 'published'} notify={notify} />
 
         <div className="creator-actions"><button className="creator-secondary" onClick={() => setPreview(true)}><Eye size={16} /> Preview</button><button className="creator-secondary" disabled={busy} onClick={saveDraft}>{busy ? <LoaderCircle size={16} className="auth-spinner" /> : <Save size={16} />} Save draft</button><button className="creator-primary" disabled={busy} onClick={publishStory}>{busy ? <LoaderCircle size={16} className="auth-spinner" /> : <Send size={16} />} {busy ? 'Saving…' : 'Publish story'}</button></div>
         <div className="creator-publish-note"><Check size={16} /><p><strong>Cloud-connected workspace.</strong> Your drafts and chapters are stored in Supabase and tied to your signed-in account. Unrevealed chapters are marked separately and protected by database policies.</p></div>
