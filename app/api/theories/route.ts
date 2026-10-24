@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       story_id,
       body,
       created_at,
-      profiles!theories_user_id_fkey(display_name, username)
+      profiles!theories_user_id_fkey(id, display_name, username, avatar_url)
     `)
     .eq('story_id', storyId)
     .order('created_at', { ascending: false })

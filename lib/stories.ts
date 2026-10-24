@@ -7,6 +7,7 @@ export type Story = {
   author: string;
   handle: string;
   initials: string;
+  avatarUrl?: string;
   color: string;
   readTime: string;
   predictions: number;

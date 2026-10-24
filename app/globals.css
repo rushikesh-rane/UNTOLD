@@ -7411,3 +7411,26 @@ select {
     letter-spacing: .5px;
   }
 }
+
+/* ---- profile photos shown next to names (feed, theories, replies, community) ---- */
+.avatar,
+.theory-avatar,
+.community-avatar {
+  overflow: hidden;
+}
+
+.avatar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.community-note > .community-avatar {
+  float: left;
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  font-size: 13px;
+}

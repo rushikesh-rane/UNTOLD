@@ -17,6 +17,7 @@ import PredictionCard from '@/components/PredictionCard';
 type CloudAuthor = {
   display_name?: string | null;
   username?: string | null;
+  avatar_url?: string | null;
 };
 
 type CloudChapter = {
@@ -60,8 +61,8 @@ type CloudReply = {
   profile?: CloudAuthor | CloudAuthor[] | null;
 };
 
-type Reply = { id: string; userId?: string; author: string; text: string; createdAt?: string };
-type Theory = { id: string; userId?: string; author: string; text: string; votes: number; createdAt?: string; replies: Reply[] };
+type Reply = { id: string; userId?: string; author: string; avatarUrl?: string; text: string; createdAt?: string };
+type Theory = { id: string; userId?: string; author: string; avatarUrl?: string; text: string; votes: number; createdAt?: string; replies: Reply[] };
 
 type MediaStory = Story & {
   authorId?: string;
@@ -97,7 +98,7 @@ function mapCloudStory(item: CloudStory): MediaStory {
   const { parts, images } = buildReaderParts(item.chapters ?? []);
   const upcoming = buildUpcomingParts(item.upcoming);
   const body = parts.flatMap((part) => part.paragraphs);
-  return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: (item.genre ?? '').trim().toUpperCase() || 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 0, publishedAt: item.published_at || undefined, body, parts, upcoming, images, theories: [], audioLabel: 'Listen to the opening' };
+  return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: (item.genre ?? '').trim().toUpperCase() || 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), avatarUrl: author?.avatar_url || undefined, color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 0, publishedAt: item.published_at || undefined, body, parts, upcoming, images, theories: [], audioLabel: 'Listen to the opening' };
 }
 
 // Synopses are often written as "Tag · Tag · Tag · The actual blurb". The card shows the tags and the
@@ -114,8 +115,17 @@ function splitSynopsis(text: string): { tags: string[]; blurb: string } {
   return { tags: [], blurb: clean };
 }
 
-function Avatar({ initials, color }: { initials: string; color: string }) {
-  return <span className={`avatar avatar-${color}`}>{initials}</span>;
+function Avatar({ initials, color, src }: { initials: string; color: string; src?: string }) {
+  const [broken, setBroken] = useState(false);
+  useEffect(() => { setBroken(false); }, [src]);
+  return <span className={`avatar avatar-${color}`}>{src && !broken ? <img src={src} alt="" className="avatar-img" onError={() => setBroken(true)} /> : initials}</span>;
+}
+
+// Small round profile photo used next to theories and replies; falls back to the first letter of the name.
+function MiniAvatar({ name, src, className = '' }: { name: string; src?: string; className?: string }) {
+  const [broken, setBroken] = useState(false);
+  useEffect(() => { setBroken(false); }, [src]);
+  return <span className={`theory-avatar${className ? ` ${className}` : ''}`}>{src && !broken ? <img src={src} alt="" className="avatar-img" onError={() => setBroken(true)} /> : name.slice(0, 1).toUpperCase()}</span>;
 }
 
 export default function HomePage() {
@@ -294,11 +304,11 @@ export default function HomePage() {
       for (const item of repliesBody.replies ?? []) {
         if (!item.theory_id) continue;
         const profile = Array.isArray(item.profile) ? item.profile[0] : item.profile;
-        (repliesByTheory[item.theory_id] ??= []).push({ id: item.id, userId: item.user_id || undefined, author: profile?.username || profile?.display_name || 'reader', text: item.body, createdAt: item.created_at || undefined });
+        (repliesByTheory[item.theory_id] ??= []).push({ id: item.id, userId: item.user_id || undefined, author: profile?.username || profile?.display_name || 'reader', avatarUrl: profile?.avatar_url || undefined, text: item.body, createdAt: item.created_at || undefined });
       }
       const theories: Theory[] = theoriesBody.theories.map((item) => {
         const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
-        return { id: item.id, userId: item.user_id || undefined, author: profile?.username || profile?.display_name || 'reader', text: item.body, createdAt: item.created_at || undefined, votes: counts[item.id] ?? 0, replies: repliesByTheory[item.id] ?? [] };
+        return { id: item.id, userId: item.user_id || undefined, author: profile?.username || profile?.display_name || 'reader', avatarUrl: profile?.avatar_url || undefined, text: item.body, createdAt: item.created_at || undefined, votes: counts[item.id] ?? 0, replies: repliesByTheory[item.id] ?? [] };
       });
       setLikedTheories((current) => ({ ...current, ...Object.fromEntries(theories.map((theory) => [theory.id, mine.has(theory.id)])) }));
       setSelectedStory((current) => current?.id === storyId ? { ...current, theories } : current);
@@ -670,7 +680,7 @@ export default function HomePage() {
             <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'REAL LIFE' ? '' : 'pill-fiction'}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>{selectedStory.parts.length > 1 ? `${selectedStory.parts.length} PARTS` : 'ONE PART'}</span></div>
             <h1 className="reader-title">{selectedStory.title}</h1>
             <p className="reader-deck">{selectedStory.excerpt}</p>
-            <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div>{!(currentUserId && selectedStory.authorId === currentUserId) && <button className={`follow-button${selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? ' is-following' : ''}`} aria-pressed={Boolean(selectedStory.authorId && followedIds.includes(selectedStory.authorId))} onClick={() => void toggleFollow(selectedStory)}>{selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? <>Following <Check size={13} /></> : <>Follow <Plus size={13} /></>}</button>}</div>
+            <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} src={selectedStory.avatarUrl} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div>{!(currentUserId && selectedStory.authorId === currentUserId) && <button className={`follow-button${selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? ' is-following' : ''}`} aria-pressed={Boolean(selectedStory.authorId && followedIds.includes(selectedStory.authorId))} onClick={() => void toggleFollow(selectedStory)}>{selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? <>Following <Check size={13} /></> : <>Follow <Plus size={13} /></>}</button>}</div>
             <div className="reader-tools"><button className={`listen-button ${isSpeaking ? 'listening' : ''}`} onClick={toggleNarration}>{isSpeaking ? <Pause size={16} /> : <Headphones size={16} />}{isSpeaking ? 'Pause narration' : 'Listen to story'}<span><Volume2 size={13} /> browser audio</span></button><button className={`reader-save ${savedStories.includes(selectedStory.id) ? 'is-saved' : ''}`} onClick={() => toggleSave(selectedStory.id)}>{savedStories.includes(selectedStory.id) ? <Check size={16} /> : <Bookmark size={16} />}{savedStories.includes(selectedStory.id) ? 'Saved' : 'Save story'}</button></div>
             <div className="reader-body">{selectedStory.parts.map((part) => <section className="reader-part" key={part.position} aria-label={`Part ${part.position}`}>{selectedStory.parts.length > 1 ? <p className="eyebrow muted-eyebrow reader-part-label">PART {String(part.position).padStart(2, '0')}</p> : null}{part.heading ? <h2 className="reader-part-title">{part.heading}</h2> : null}{part.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</section>)}</div>
             {selectedStory.upcoming.length ? <section className="reveal-countdown-list" aria-label="Parts that unlock later">{selectedStory.upcoming.map((part, index) => {
@@ -697,7 +707,7 @@ export default function HomePage() {
               const liked = Boolean(likedTheories[theory.id]);
               const isReplying = replyingTo === theory.id;
               return <article className="theory-card" key={theory.id}>
-                <div className="theory-author"><span className="theory-avatar">{theory.author.slice(0, 1).toUpperCase()}</span>{theory.userId ? <Link href={`/u/${theory.userId}`} className="theory-profile-link"><strong>{theory.author}</strong></Link> : <strong>{theory.author}</strong>}<span>{theory.createdAt ? timeAgo(theory.createdAt) : 'reader theory'}</span></div>
+                <div className="theory-author"><MiniAvatar name={theory.author} src={theory.avatarUrl} />{theory.userId ? <Link href={`/u/${theory.userId}`} className="theory-profile-link"><strong>{theory.author}</strong></Link> : <strong>{theory.author}</strong>}<span>{theory.createdAt ? timeAgo(theory.createdAt) : 'reader theory'}</span></div>
                 <p>{theory.text}</p>
                 <div className="theory-votes">
                   <button type="button" className={`like-button${liked ? ' is-liked' : ''}`} aria-pressed={liked} aria-label={liked ? `Unlike this theory (${theory.votes} likes)` : `Like this theory (${theory.votes} likes)`} onClick={() => void toggleLike(theory)}><Heart size={14} fill={liked ? 'currentColor' : 'none'} /> {theory.votes}</button>
@@ -705,7 +715,7 @@ export default function HomePage() {
                 </div>
                 {(theory.replies.length > 0 || isReplying) && <div className="theory-replies">
                   {theory.replies.map((reply) => <div className="reply-card" key={reply.id}>
-                    <div className="theory-author"><span className="theory-avatar reply-avatar">{reply.author.slice(0, 1).toUpperCase()}</span>{reply.userId ? <Link href={`/u/${reply.userId}`} className="theory-profile-link"><strong>{reply.author}</strong></Link> : <strong>{reply.author}</strong>}<span>{timeAgo(reply.createdAt)}</span></div>
+                    <div className="theory-author"><MiniAvatar name={reply.author} src={reply.avatarUrl} className="reply-avatar" />{reply.userId ? <Link href={`/u/${reply.userId}`} className="theory-profile-link"><strong>{reply.author}</strong></Link> : <strong>{reply.author}</strong>}<span>{timeAgo(reply.createdAt)}</span></div>
                     <p>{reply.text}</p>
                     <div className="theory-votes"><button type="button" onClick={() => openReply(theory, reply.author)}><MessageCircle size={13} /> Reply</button></div>
                   </div>)}
