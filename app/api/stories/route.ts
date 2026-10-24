@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { data: stories, error } = await supabase.from('stories').select(`
       id,title,genre,synopsis,cover_url,author_id,published_at,
-      author:profiles!stories_author_id_fkey(display_name, username),
+      author:profiles!stories_author_id_fkey(display_name, username, avatar_url),
       chapters(id,title,body,position,is_revealed,reveal_at)
     `).eq('status', 'published').order('published_at', { ascending: false, nullsFirst: false })
       .limit(200); // the feed is capped so a single request can never pull an unbounded amount of data
