@@ -2222,6 +2222,37 @@ html[data-theme='dark'] .engage-divider::after {
   background: #302e35;
 }
 
+html[data-theme='dark'] .whats-new-star {
+  color: #cba8f7;
+}
+
+html[data-theme='dark'] .whats-new-header h1 em {
+  color: #cba8f7;
+}
+
+html[data-theme='dark'] .whats-new-header p:last-child {
+  color: #b7b1be;
+}
+
+html[data-theme='dark'] .whats-new-update {
+  border: 1px solid #35323a;
+  border-left: 4px solid #cba8f7;
+  background: #1c1b21;
+}
+
+html[data-theme='dark'] .whats-new-meta {
+  color: #b7b1be;
+}
+
+html[data-theme='dark'] .whats-new-badge {
+  background: #30233b;
+  color: #cba8f7;
+}
+
+html[data-theme='dark'] .whats-new-update li p {
+  color: #b7b1be;
+}
+
 
 /* ---- manual overrides ---- */
 /* Hand-tuned dark-mode rules. Appended to dark-theme.css by

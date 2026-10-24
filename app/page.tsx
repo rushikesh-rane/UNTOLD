@@ -11,6 +11,7 @@ import { type Story } from '@/lib/stories';
 import { createClient } from '@/lib/supabase/client';
 import { buildReaderParts, buildUpcomingParts, countdownLabel, formatRevealDate, isRecentlyPublished, partsToPlainText, type ReaderPart, type UpcomingPart } from '@/lib/reader';
 import ThemeToggle from '@/components/ThemeToggle';
+import WhatsNewLink from '@/components/WhatsNewLink';
 import { StoryListSkeleton, TheorySkeleton } from '@/components/Skeletons';
 import PredictionCard from '@/components/PredictionCard';
 
@@ -424,6 +425,7 @@ export default function HomePage() {
         <div className="topbar-actions">
           <button className="icon-button" aria-label="Search stories" onClick={() => setSearchOpen(!searchOpen)}><Search size={18} /></button>
           <ThemeToggle />
+          <WhatsNewLink />
           <Link href="/community" className="profile-button" aria-label="Your community" title="Reading list, following, theories and predictions"><Users size={17} /><span>Community</span></Link>
           <Link href="/account" className="profile-button" aria-label="Your profile" title="Your profile"><UserRound size={17} /><span>Profile</span></Link>
           <Link href="/write" className="publish-button"><Plus size={16} /><span>Write a story</span></Link>

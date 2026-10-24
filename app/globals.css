@@ -7434,3 +7434,115 @@ select {
   margin-right: 10px;
   font-size: 13px;
 }
+
+/* ---- What's new: top bar button with a star, and its own page ---- */
+.whats-new-link {
+  position: relative;
+}
+
+.whats-new-star {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--purple);
+  animation: whats-new-pop .5s ease-out;
+}
+
+@keyframes whats-new-pop {
+  from { transform: scale(0) rotate(-40deg); }
+  to { transform: scale(1) rotate(0); }
+}
+
+@media (max-width: 680px) {
+  .whats-new-link span:not(.whats-new-star) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whats-new-star { animation: none; }
+}
+
+.whats-new-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+}
+
+.whats-new-header {
+  margin: 28px 0 30px;
+}
+
+.whats-new-header h1 {
+  font-family: var(--serif);
+  font-size: clamp(34px, 6vw, 48px);
+  font-weight: 500;
+  letter-spacing: -1px;
+  margin: 8px 0 10px;
+}
+
+.whats-new-header h1 em {
+  font-weight: 500;
+  color: var(--purple);
+}
+
+.whats-new-header p:last-child {
+  margin: 0;
+  color: var(--muted);
+}
+
+.whats-new-update {
+  margin-bottom: 22px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--purple);
+  border-radius: 18px;
+  background: var(--white);
+}
+
+.whats-new-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .8px;
+  color: var(--muted);
+}
+
+.whats-new-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--lavender);
+  color: var(--purple);
+  font-size: 11px;
+}
+
+.whats-new-update h2 {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -.4px;
+  margin: 10px 0 14px;
+}
+
+.whats-new-update ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.whats-new-update li strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.whats-new-update li p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
