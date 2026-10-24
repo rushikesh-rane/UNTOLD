@@ -3,18 +3,12 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
-import { LATEST_UPDATE_ID, SEEN_EVENT, SEEN_KEY, UPDATES } from '@/lib/whats-new';
+import { UPDATES } from '@/lib/whats-new';
+import { markUpdateSeen } from '@/lib/whats-new-client';
 
 export default function WhatsNewPage() {
-  // Opening this page counts as seeing the update, so the star on the button goes away.
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(SEEN_KEY, LATEST_UPDATE_ID);
-    } catch {
-      /* private mode: the star simply shows again next time */
-    }
-    window.dispatchEvent(new Event(SEEN_EVENT));
-  }, []);
+  // Opening this page counts as seeing the update for this account, so the star goes away.
+  useEffect(() => { void markUpdateSeen(); }, []);
 
   return (
     <main className="whats-new-page">

@@ -460,6 +460,7 @@ export default function HomePage() {
 
 
             <section className="feed-section" aria-label="Discover stories">
+              <div className="whats-new-chip-row"><WhatsNewLink variant="chip" /></div>
               <div className="feed-toolbar">
                 <div
                   className="feed-tabs"

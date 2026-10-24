@@ -28,5 +28,4 @@ export const UPDATES: UpdateEntry[] = [
 ];
 
 export const LATEST_UPDATE_ID = UPDATES[0].id;
-export const SEEN_KEY = 'untold.whats-new.seen';
 export const SEEN_EVENT = 'untold:whats-new-seen';

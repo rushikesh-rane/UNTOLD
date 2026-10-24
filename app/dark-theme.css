@@ -2253,6 +2253,12 @@ html[data-theme='dark'] .whats-new-update li p {
   color: #b7b1be;
 }
 
+html[data-theme='dark'] .whats-new-chip {
+  border: 1px solid #35323a;
+  background: #30233b;
+  color: #cba8f7;
+}
+
 
 /* ---- manual overrides ---- */
 /* Hand-tuned dark-mode rules. Appended to dark-theme.css by
