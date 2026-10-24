@@ -64,7 +64,7 @@ export async function GET(request: Request) {
 
   const { data: rows, error } = await supabase
     .from('prediction_polls')
-    .select('id, story_id, author_id, question, status, correct_option_id, options:prediction_options(id, label, position)')
+    .select('id, story_id, author_id, question, status, correct_option_id, options:prediction_options!poll_id(id, label, position)')
     .eq('story_id', storyId)
     .order('created_at', { ascending: false })
     .limit(1);

@@ -20,6 +20,8 @@ export default function PredictionCard({
 }) {
   // undefined = still loading, null = this story has no prediction
   const [poll, setPoll] = useState<PollView | null | undefined>(undefined);
+  const [failed, setFailed] = useState(false);
+  const [failDetail, setFailDetail] = useState('');
   const [busyOption, setBusyOption] = useState<string | null>(null);
   const [changing, setChanging] = useState(false);
 
@@ -27,14 +29,19 @@ export default function PredictionCard({
     try {
       const response = await fetch(`/api/polls?storyId=${encodeURIComponent(storyId)}`, { cache: 'no-store' });
       const body = await response.json().catch(() => ({}));
+      setFailed(!response.ok);
+      setFailDetail(response.ok ? '' : `${response.status}: ${typeof body.error === 'string' ? body.error : 'no details'}`);
       setPoll(response.ok ? ((body.poll as PollView | null) ?? null) : null);
     } catch {
+      setFailed(true);
+      setFailDetail('network error');
       setPoll(null);
     }
   }, [storyId]);
 
   useEffect(() => {
     setPoll(undefined);
+    setFailed(false);
     setChanging(false);
     void load();
   }, [load]);
@@ -72,7 +79,22 @@ export default function PredictionCard({
   if (poll === undefined) {
     return <section className="predict-card predict-loading" aria-busy="true" aria-label="Loading prediction" />;
   }
-  if (poll === null) return null;
+  if (poll === null) {
+    return (
+      <section className="predict-card predict-empty" aria-label="Prediction">
+        <p className="eyebrow muted-eyebrow"><Sparkles size={13} /> PREDICT WHAT HAPPENS NEXT</p>
+        {failed ? (
+          <>
+            <p className="predict-empty-text">The prediction could not be loaded right now.</p>
+            {failDetail ? <p className="predict-empty-text"><small>Reason: {failDetail}</small></p> : null}
+            <button type="button" className="predict-link" onClick={() => { setPoll(undefined); void load(); }}>Try again</button>
+          </>
+        ) : (
+          <p className="predict-empty-text">The author hasn&rsquo;t asked a prediction question for this story yet. If they add one, you&rsquo;ll be able to pick your answer here.</p>
+        )}
+      </section>
+    );
+  }
 
   const isOpen = poll.status === 'open';
   const picked = poll.myOptionId;
