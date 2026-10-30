@@ -8097,3 +8097,111 @@ html[data-theme='dark'] .guest-primary,
 html[data-theme='dark'] .guest-inline-cta button {
   background: #7f55a8;
 }
+
+/* Signed-in tick toast + first-login tutorial (components/WelcomeTutorial.tsx). Uses theme variables, so dark mode works as-is. */
+.login-toast {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--white, var(--paper));
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .22);
+  transform: translateX(-50%);
+  animation: login-toast-in .35s ease-out both;
+}
+
+.login-toast-tick {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #2f9e62;
+  color: #fff;
+}
+
+@keyframes login-toast-in {
+  from { opacity: 0; transform: translate(-50%, -12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.tutorial-backdrop {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  animation: guest-nudge-fade .3s ease-out both;
+}
+
+.tutorial-modal {
+  width: min(100%, 440px);
+  animation: guest-nudge-rise .3s ease-out both;
+}
+
+.tutorial-kicker {
+  margin: 0 0 10px !important;
+  color: var(--purple) !important;
+  font-family: var(--mono);
+  font-size: 11px !important;
+  letter-spacing: .12em;
+}
+
+.tutorial-modal h2 { margin-top: 4px; }
+.tutorial-modal p { min-height: 4.6em; }
+
+.tutorial-dots {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 14px;
+}
+
+.tutorial-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: width .2s ease, background .2s ease;
+}
+
+.tutorial-dots span.active {
+  width: 22px;
+  border-radius: 99px;
+  background: var(--purple);
+}
+
+.tutorial-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.tutorial-modal .tutorial-next { width: auto; flex: 1; }
+
+.tutorial-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.how-replay { margin-top: 18px; border: 0; cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  .login-toast, .tutorial-backdrop, .tutorial-modal { animation: none; }
+}

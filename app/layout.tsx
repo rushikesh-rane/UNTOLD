@@ -5,6 +5,7 @@ import './globals.css';
 import './dark-theme.css';
 import NavigationProgress from '@/components/NavigationProgress';
 import GuestSignInNudge from '@/components/GuestSignInNudge';
+import WelcomeTutorial from '@/components/WelcomeTutorial';
 
 // Self-hosted at build time: no request to Google at runtime and no render-blocking CSS @import.
 const sans = DM_Sans({ subsets: ['latin'], display: 'swap', variable: '--font-dm-sans' });
@@ -65,6 +66,7 @@ export default async function RootLayout({
         <NavigationProgress />
         {children}
         <GuestSignInNudge />
+        <WelcomeTutorial />
       </body>
     </html>
   );

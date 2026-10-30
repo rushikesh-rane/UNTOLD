@@ -11,6 +11,25 @@ export type UpdateEntry = {
 
 export const UPDATES: UpdateEntry[] = [
   {
+    id: '2026-10-30',
+    date: '30 October 2026',
+    title: 'A friendly welcome and a quick tour',
+    items: [
+      {
+        title: 'A tick when you sign in',
+        text: 'As soon as you sign in, a small green tick appears with \u201cYou\u2019re logged in\u201d, so you always know it worked.',
+      },
+      {
+        title: 'A quick tour for new accounts',
+        text: 'The first time you sign in, a short tour shows you the basics: how to find and read a story, save it, share your theory, and write a story of your own. It only takes a few taps, and you can skip it at any time.',
+      },
+      {
+        title: 'Replay the tour whenever you like',
+        text: 'Want a reminder later? Open How it works and tap \u201cTake the quick tour\u201d.',
+      },
+    ],
+  },
+  {
     id: '2026-10-24',
     date: '24 October 2026',
     title: 'Predictions and profile photos',
