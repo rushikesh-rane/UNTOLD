@@ -604,7 +604,7 @@ button {
   margin: 0 0 22px
 }
 
-.reader-part + .reader-part {
+.reader-part+.reader-part {
   margin-top: 44px;
   padding-top: 36px;
   border-top: 1px solid rgba(120, 100, 140, .22)
@@ -5854,9 +5854,17 @@ html[data-theme='dark'] .theme-toggle .theme-icon-sun {
 }
 
 @keyframes nav-progress-grow {
-  0% { transform: scaleX(.03); }
-  25% { transform: scaleX(.5); }
-  100% { transform: scaleX(.92); }
+  0% {
+    transform: scaleX(.03);
+  }
+
+  25% {
+    transform: scaleX(.5);
+  }
+
+  100% {
+    transform: scaleX(.92);
+  }
 }
 
 .sk {
@@ -5877,14 +5885,33 @@ html[data-theme='dark'] .theme-toggle .theme-icon-sun {
 }
 
 @keyframes sk-shimmer {
-  to { transform: translateX(100%); }
+  to {
+    transform: translateX(100%);
+  }
 }
 
-.sk-gap { margin-top: 10px; }
-.sk-circle, .sk-avatar { border-radius: 50%; }
-.sk-avatar { border-radius: 18px; }
-.sk-cover { flex: 0 0 auto; border-radius: 10px; }
-.sk-grow { flex: 1; min-width: 0; }
+.sk-gap {
+  margin-top: 10px;
+}
+
+.sk-circle,
+.sk-avatar {
+  border-radius: 50%;
+}
+
+.sk-avatar {
+  border-radius: 18px;
+}
+
+.sk-cover {
+  flex: 0 0 auto;
+  border-radius: 10px;
+}
+
+.sk-grow {
+  flex: 1;
+  min-width: 0;
+}
 
 .sk-inline {
   display: flex;
@@ -5892,8 +5919,14 @@ html[data-theme='dark'] .theme-toggle .theme-icon-sun {
   gap: 12px;
 }
 
-.sk-profile-head { gap: 16px; margin-bottom: 18px; }
-.sk-stats { margin: 22px 0 8px; }
+.sk-profile-head {
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.sk-stats {
+  margin: 22px 0 8px;
+}
 
 .sk-row {
   display: flex;
@@ -5916,7 +5949,9 @@ html[data-theme='dark'] .theme-toggle .theme-icon-sun {
 }
 
 .sk-theory,
-.sk-story { margin-top: 14px; }
+.sk-story {
+  margin-top: 14px;
+}
 
 .sk-sr {
   position: absolute;
@@ -5928,9 +5963,19 @@ html[data-theme='dark'] .theme-toggle .theme-icon-sun {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sk::after { animation: none; display: none; }
-  .nav-progress-loading { animation: none; transform: scaleX(.6); }
-  .auth-spinner { animation-duration: 2.5s; }
+  .sk::after {
+    animation: none;
+    display: none;
+  }
+
+  .nav-progress-loading {
+    animation: none;
+    transform: scaleX(.6);
+  }
+
+  .auth-spinner {
+    animation-duration: 2.5s;
+  }
 }
 
 /* ---------- Scheduled parts: "Part 2 reveals in 2 days" ---------- */
@@ -6066,6 +6111,7 @@ summary:focus-visible,
 
 /* Touch screens: every button gets a thumb-sized target, icon-only ones a square one */
 @media (pointer: coarse) {
+
   button,
   [role='button'],
   summary,
@@ -6626,7 +6672,8 @@ select {
     flex-wrap: wrap;
     align-items: center;
     gap: 4px 8px;
-    padding-right: 38px; /* clear of the bookmark button */
+    padding-right: 38px;
+    /* clear of the bookmark button */
     font-size: 12px;
     line-height: 1.3;
   }
@@ -6757,6 +6804,7 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .story-card,
   .story-card-preview,
   .story-card-cover,
@@ -7211,7 +7259,7 @@ select {
   background: var(--white);
 }
 
-.your-prediction > div {
+.your-prediction>div {
   min-width: 0;
   flex: 1 1 260px;
 }
@@ -7282,13 +7330,14 @@ select {
     align-items: flex-start;
   }
 
-  .pstudio-actions > * {
+  .pstudio-actions>* {
     flex: 1 1 auto;
     justify-content: center;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .predict-bar span,
   .predict-option {
     transition: none;
@@ -7390,7 +7439,7 @@ select {
   background: var(--line);
 }
 
-.engage-divider + .theory-section {
+.engage-divider+.theory-section {
   border-top: 0;
   margin-top: 28px;
   padding-top: 0;
@@ -7427,7 +7476,7 @@ select {
   border-radius: 50%;
 }
 
-.community-note > .community-avatar {
+.community-note>.community-avatar {
   float: left;
   width: 30px;
   height: 30px;
@@ -7451,8 +7500,13 @@ select {
 }
 
 @keyframes whats-new-pop {
-  from { transform: scale(0) rotate(-40deg); }
-  to { transform: scale(1) rotate(0); }
+  from {
+    transform: scale(0) rotate(-40deg);
+  }
+
+  to {
+    transform: scale(1) rotate(0);
+  }
 }
 
 @media (max-width: 680px) {
@@ -7462,7 +7516,9 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .whats-new-star { animation: none; }
+  .whats-new-star {
+    animation: none;
+  }
 }
 
 .whats-new-page {
@@ -7580,4 +7636,190 @@ select {
     display: block;
     margin: 0 0 12px;
   }
+}
+
+
+/* =====================================================================
+   UI consistency fixes (mobile story card footer + feed tabs divider)
+   Kept last on purpose so it wins over the earlier layered rules.
+   ===================================================================== */
+
+/* ---- Feed tabs: one divider, and the active underline sits exactly on it ---- */
+.feed-toolbar {
+  align-items: stretch;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.feed-tabs {
+  align-items: stretch;
+  gap: 8px;
+  /* the buttons carry 10px side padding for a thumb-sized target; pull back so the first label lines up with the page edge */
+  margin-left: -10px;
+}
+
+.feed-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.feed-tabs button.tab-active::after {
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+}
+
+@media (max-width: 760px) {
+  .feed-toolbar {
+    margin-bottom: 14px;
+  }
+
+  .feed-tabs {
+    gap: 4px;
+  }
+}
+
+/* ---- Story card footer on phones: never wider than the card ---- */
+@media (max-width: 760px) {
+  .story-card-footer {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  .story-card-rest,
+  .story-card-footer,
+  .story-card-stats,
+  .story-card-actions {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .story-card-stats {
+    flex: 0 1 auto;
+  }
+
+  .story-card-actions {
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .story-card-preview-btn,
+  .story-card-open {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* narrower phones: Chapters collapses to its icon so both buttons keep a comfortable size */
+@media (max-width: 400px) {
+  .story-card-preview-btn .btn-label {
+    display: none;
+  }
+
+  .story-card-preview-btn {
+    padding: 0 12px;
+  }
+}
+
+/* very narrow: stats on one line, the two buttons share the next line evenly */
+@media (max-width: 340px) {
+  .story-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .story-card-actions {
+    justify-content: stretch;
+    margin-left: 0;
+  }
+
+  .story-card-open {
+    flex: 1 1 auto;
+  }
+}
+
+/* ---- Story card breathing room on phones: the footer buttons no longer hug the card border ---- */
+@media (max-width: 760px) {
+  .story-card {
+    padding: 18px 18px 16px;
+  }
+
+  .story-card .story-card-save {
+    top: 8px;
+    right: 8px;
+  }
+
+  .story-card-footer {
+    padding-top: 14px;
+  }
+
+  .story-card-actions {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .story-card {
+    padding: 16px 16px 14px;
+  }
+}
+
+/* ---- Safety nets for narrow phones (header + long user-written text) ---- */
+@media (max-width: 440px) {
+  .topbar {
+    gap: 8px;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .brand-lockup {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .brand-word {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 340px) {
+  .topbar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .topbar-actions {
+    gap: 4px;
+  }
+
+  .brand-word {
+    font-size: 20px;
+  }
+}
+
+/* long unbroken words (usernames, URLs, titles) wrap instead of pushing cards wider */
+.story-card-title,
+.story-card-title button,
+.story-card-blurb,
+.story-card-author {
+  overflow-wrap: anywhere;
+}
+
+img,
+video {
+  max-width: 100%;
 }

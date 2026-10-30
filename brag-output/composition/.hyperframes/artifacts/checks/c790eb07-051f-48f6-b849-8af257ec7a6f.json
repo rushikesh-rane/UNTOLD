@@ -1,0 +1,821 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 5,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"intro\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#intro",
+        "dataAttributes": {},
+        "sourceFile": "C:\\projects\\UNTOLD\\untoldupdatev2-backup\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"intro\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"discover\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#discover",
+        "dataAttributes": {},
+        "sourceFile": "C:\\projects\\UNTOLD\\untoldupdatev2-backup\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"discover\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"locked\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#locked",
+        "dataAttributes": {},
+        "sourceFile": "C:\\projects\\UNTOLD\\untoldupdatev2-backup\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"locked\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"engage\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#engage",
+        "dataAttributes": {},
+        "sourceFile": "C:\\projects\\UNTOLD\\untoldupdatev2-backup\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"engage\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<section id=\"outro\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#outro",
+        "dataAttributes": {},
+        "sourceFile": "C:\\projects\\UNTOLD\\untoldupdatev2-backup\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <section id=\"outro\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 3,
+    "findings": [
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 10,
+        "selector": "div.locked-copy > p:nth-of-type(1)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 1011,
+          "top": 448,
+          "right": 1435.8,
+          "bottom": 467,
+          "width": 424.8,
+          "height": 19
+        },
+        "containerSelector": "div.lock-overlay",
+        "text": "At the lowest tide, Mara found the brass key in the wet sand.",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {
+          "data-hf-id": "hf-74dr"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1011,
+          "y": 448,
+          "width": 424.8,
+          "height": 19
+        },
+        "firstSeen": 10,
+        "lastSeen": 10,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          10
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 10,
+        "selector": "div.locked-copy > p:nth-of-type(2)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 1011,
+          "top": 482.39,
+          "right": 1438.55,
+          "bottom": 501.39,
+          "width": 427.55,
+          "height": 19
+        },
+        "containerSelector": "div.lock-overlay",
+        "text": "It was warm in her palm, though the morning had been cold.",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {
+          "data-hf-id": "hf-cvfh"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1011,
+          "y": 482.39,
+          "width": 427.55,
+          "height": 19
+        },
+        "firstSeen": 10,
+        "lastSeen": 10,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          10
+        ]
+      },
+      {
+        "code": "text_occluded",
+        "severity": "info",
+        "time": 10,
+        "selector": "div.locked-copy > p:nth-of-type(3)",
+        "message": "Text is hidden beneath an opaque element.",
+        "rect": {
+          "left": 1011,
+          "top": 516.78,
+          "right": 1356.78,
+          "bottom": 535.78,
+          "width": 345.78,
+          "height": 19
+        },
+        "containerSelector": "div.lock-overlay",
+        "text": "Behind her, the house gave a small, familiar sigh.",
+        "fixHint": "Give the text its own zone, raise its stacking order above the covering element, or mark intentional layering with data-layout-allow-occlusion.",
+        "coveredFraction": 1,
+        "dataAttributes": {
+          "data-hf-id": "hf-d1zk"
+        },
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1011,
+          "y": 516.78,
+          "width": 345.78,
+          "height": 19
+        },
+        "firstSeen": 10,
+        "lastSeen": 10,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          10
+        ]
+      }
+    ],
+    "duration": 20,
+    "samples": [
+      2,
+      6,
+      10,
+      14,
+      18
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 3,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      2,
+      6,
+      10,
+      14,
+      18
+    ],
+    "checked": 74,
+    "passed": 74
+  },
+  "craft": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 3,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "first_frame_empty",
+        "severity": "warning",
+        "message": "Frame 0 shows only the background, and the first frame is the thumbnail on social players: have the title or key image already on screen at 0 s instead of entering from nothing; see references/review.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0
+      },
+      {
+        "code": "text_below_floor",
+        "severity": "warning",
+        "message": "Type floor is 28 px (2.6% of the 1080 px short side, what a phone can read) and 61 text elements stay under it for 0.5 s or more, the smallest \"A STORY IN PARTS\" at 9 px: set reading text to at least 28 px, or put data-layout-ignore on text that is texture rather than reading; see references/look.md.",
+        "text": "A STORY IN PARTS",
+        "selector": "span.cover-kicker",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 582.56,
+          "y": 546.68,
+          "width": 114.87,
+          "height": 9.97
+        },
+        "time": 3.125,
+        "times": [
+          0.375,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.125,
+          3.75,
+          7.25,
+          7.25,
+          7.25,
+          7.375,
+          7.375,
+          7.375,
+          7.375,
+          8.375,
+          8.375,
+          8.375,
+          10.75,
+          11.25,
+          11.5,
+          11.5,
+          11.5,
+          11.5,
+          11.5,
+          11.5,
+          11.75,
+          11.75,
+          11.75,
+          11.75,
+          11.75,
+          11.75,
+          11.75,
+          11.75,
+          11.75,
+          16.875
+        ],
+        "fontPx": 8.97,
+        "floorPx": 28,
+        "seconds": 3.875,
+        "elements": [
+          {
+            "selector": "span.cover-kicker",
+            "text": "A STORY IN PARTS",
+            "fontPx": 8.97,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "span.genre",
+            "text": "MYSTERY",
+            "fontPx": 10.97,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.tags > span:nth-of-type(1)",
+            "text": "small town",
+            "fontPx": 10.97,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.tags > span:nth-of-type(2)",
+            "text": "slow burn",
+            "fontPx": 10.97,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.tags > span:nth-of-type(3)",
+            "text": "secrets",
+            "fontPx": 10.97,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "span.pick-tag",
+            "text": "Your pick",
+            "fontPx": 10.98,
+            "time": 11.5,
+            "seconds": 4.5
+          },
+          {
+            "selector": "span.author-time",
+            "text": "· reader theory",
+            "fontPx": 10.99,
+            "time": 11.75,
+            "seconds": 4.25
+          },
+          {
+            "selector": "div.reply > small:nth-of-type(1)",
+            "text": "REPLY FROM NOOR",
+            "fontPx": 10.99,
+            "time": 11.75,
+            "seconds": 4.25
+          },
+          {
+            "selector": "div.countdown",
+            "text": "REVEAL PENDING",
+            "fontPx": 11,
+            "time": 7.25,
+            "seconds": 3.75
+          },
+          {
+            "selector": "span.creator-tag",
+            "text": "STORY PREVIEW",
+            "fontPx": 11,
+            "time": 7.375,
+            "seconds": 3.625
+          },
+          {
+            "selector": "div.side-note > small:nth-of-type(1)",
+            "text": "Read a little. Guess a lot. Discover the truth.",
+            "fontPx": 11.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "span.cover-number",
+            "text": "01",
+            "fontPx": 11.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "span.readtime",
+            "text": "4 min read",
+            "fontPx": 11.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "span.reveal-chip",
+            "text": "◷ REVEALS IN 2 DAYS",
+            "fontPx": 11.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.stats",
+            "text": "◌ 12 theories ♡ 38 predictions",
+            "fontPx": 11.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.preview > strong:nth-of-type(1)",
+            "text": "CHAPTERS",
+            "fontPx": 11.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.preview > span:nth-of-type(1)",
+            "text": "Part 01 · The shoreline",
+            "fontPx": 11.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "span.locked",
+            "text": "▣ Part 02 hidden until it unlocks",
+            "fontPx": 11.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "article.prediction-card.engage-card > p:nth-of-type(1)",
+            "text": "PREDICTIONS · THE HOUSE AT LOW TIDE",
+            "fontPx": 11.98,
+            "time": 11.5,
+            "seconds": 4.5
+          },
+          {
+            "selector": "p.predict-foot",
+            "text": "Your pick stays open until the next part.",
+            "fontPx": 11.98,
+            "time": 11.5,
+            "seconds": 4.5
+          },
+          {
+            "selector": "article.theory-card.engage-card > p:nth-of-type(1)",
+            "text": "02 · THE THEORY ROOM",
+            "fontPx": 11.98,
+            "time": 11.75,
+            "seconds": 4.25
+          },
+          {
+            "selector": "div.theory-actions > span:nth-of-type(1)",
+            "text": "♡ 24",
+            "fontPx": 11.98,
+            "time": 11.75,
+            "seconds": 4.25
+          },
+          {
+            "selector": "div.theory-actions > span:nth-of-type(2)",
+            "text": "◌ Reply · 3",
+            "fontPx": 11.98,
+            "time": 11.75,
+            "seconds": 4.25
+          },
+          {
+            "selector": "p.bottom-note",
+            "text": "PREDICT · DISCUSS · RETURN FOR THE REVEAL",
+            "fontPx": 12,
+            "time": 10.75,
+            "seconds": 5.375
+          },
+          {
+            "selector": "p.byline",
+            "text": "by",
+            "fontPx": 12.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "p.byline > strong:nth-of-type(1)",
+            "text": "Mara Vale",
+            "fontPx": 12.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "span.author-name",
+            "text": "Eli",
+            "fontPx": 12.98,
+            "time": 11.75,
+            "seconds": 4.25
+          },
+          {
+            "selector": "div.lock-overlay > span:nth-of-type(2)",
+            "text": "The story continues when the creator reveals it.",
+            "fontPx": 13,
+            "time": 7.375,
+            "seconds": 3.625
+          },
+          {
+            "selector": "p.outro-caption.outro-copy",
+            "text": "Every story has a missing piece.",
+            "fontPx": 13,
+            "time": 16.875,
+            "seconds": 3.125
+          },
+          {
+            "selector": "span.tab.selected",
+            "text": "For you",
+            "fontPx": 13.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.tabs > span:nth-of-type(2)",
+            "text": "Trending",
+            "fontPx": 13.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.tabs > span:nth-of-type(3)",
+            "text": "New",
+            "fontPx": 13.96,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "article.prediction-card.engage-card > div:nth-of-type(1)",
+            "text": "A second tide bell",
+            "fontPx": 13.97,
+            "time": 11.5,
+            "seconds": 4.5
+          },
+          {
+            "selector": "div.option.picked",
+            "text": "Someone answering her name",
+            "fontPx": 13.97,
+            "time": 11.5,
+            "seconds": 4.5
+          },
+          {
+            "selector": "nav.top-links > span:nth-of-type(1)",
+            "text": "Discover",
+            "fontPx": 14.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "nav.top-links > span:nth-of-type(2)",
+            "text": "Community",
+            "fontPx": 14.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "span.top-pill",
+            "text": "Sign in",
+            "fontPx": 14.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.side-item.active",
+            "text": "Discover",
+            "fontPx": 14.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "aside.sidebar > div:nth-of-type(2)",
+            "text": "Trending",
+            "fontPx": 14.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "aside.sidebar > div:nth-of-type(3)",
+            "text": "Reading list",
+            "fontPx": 14.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "aside.sidebar > div:nth-of-type(4)",
+            "text": "Predictions",
+            "fontPx": 14.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.feed-intro > p:nth-of-type(1)",
+            "text": "EVERY STORY HAS A MISSING PIECE",
+            "fontPx": 14.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "p.feed-deck",
+            "text": "A little of the story. A thousand possible endings.",
+            "fontPx": 14.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.reply",
+            "text": "That would explain why the bell rings at low tide.",
+            "fontPx": 14.98,
+            "time": 11.75,
+            "seconds": 4.25
+          },
+          {
+            "selector": "p.eyebrow.intro-overline",
+            "text": "UNTOLD PRESENTS",
+            "fontPx": 15,
+            "time": 0.375,
+            "seconds": 2.625
+          },
+          {
+            "selector": "div.screen-label.discover-label",
+            "text": "01 — DISCOVER",
+            "fontPx": 15,
+            "time": 3.75,
+            "seconds": 3.25
+          },
+          {
+            "selector": "article.lock-card.lock-entrance > p:nth-of-type(1)",
+            "text": "PART 02 · REVEAL LATER",
+            "fontPx": 15,
+            "time": 7.375,
+            "seconds": 3.625
+          },
+          {
+            "selector": "header.engage-heading > p:nth-of-type(1)",
+            "text": "WHILE YOU WAIT",
+            "fontPx": 15,
+            "time": 11.25,
+            "seconds": 4.75
+          },
+          {
+            "selector": "p.synopsis",
+            "text": "Every spring, the tide uncovers one more room beneath the old house.",
+            "fontPx": 15.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.locked-copy > p:nth-of-type(1)",
+            "text": "At the lowest tide, Mara found the brass key in the wet sand.",
+            "fontPx": 16,
+            "time": 8.375,
+            "seconds": 2.625
+          },
+          {
+            "selector": "div.locked-copy > p:nth-of-type(2)",
+            "text": "It was warm in her palm, though the morning had been cold.",
+            "fontPx": 16,
+            "time": 8.375,
+            "seconds": 2.625
+          },
+          {
+            "selector": "div.locked-copy > p:nth-of-type(3)",
+            "text": "Behind her, the house gave a small, familiar sigh.",
+            "fontPx": 16,
+            "time": 8.375,
+            "seconds": 2.625
+          },
+          {
+            "selector": "div.side-note",
+            "text": "Every story has a missing piece.",
+            "fontPx": 16.95,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "span.avatar",
+            "text": "E",
+            "fontPx": 16.98,
+            "time": 11.75,
+            "seconds": 4.25
+          },
+          {
+            "selector": "div.lock-overlay > strong:nth-of-type(1)",
+            "text": "This part is still hidden",
+            "fontPx": 17,
+            "time": 7.375,
+            "seconds": 3.625
+          },
+          {
+            "selector": "div.lock-copy.lock-entrance > p:nth-of-type(1)",
+            "text": "THE NEXT PART",
+            "fontPx": 18,
+            "time": 7.25,
+            "seconds": 3.75
+          },
+          {
+            "selector": "div.lock-copy.lock-entrance > p:nth-of-type(2)",
+            "text": "Until then, the words stay hidden, even from us.",
+            "fontPx": 18,
+            "time": 7.25,
+            "seconds": 3.75
+          },
+          {
+            "selector": "div.wordmark",
+            "text": "UNTOLD",
+            "fontPx": 19.94,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "p.theory-text",
+            "text": "“The house is built over the first room. It isn't abandoned — it's listening.”",
+            "fontPx": 20.97,
+            "time": 11.75,
+            "seconds": 4.25
+          },
+          {
+            "selector": "span.cover-title",
+            "text": "The Houseat Low Tide",
+            "fontPx": 22.93,
+            "time": 3.125,
+            "seconds": 3.875
+          },
+          {
+            "selector": "h3.question",
+            "text": "What did Mara hear beneath the floor?",
+            "fontPx": 24.95,
+            "time": 11.5,
+            "seconds": 4.5
+          }
+        ]
+      },
+      {
+        "code": "dead_stretch",
+        "severity": "warning",
+        "message": "Nothing on screen changes for 3.63 s (12.13–15.75 s): start the next move within 3 s, or put data-hold on the element whose stillness is deliberate; see references/motion.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 12.125,
+        "seconds": 3.625,
+        "floorSeconds": 3,
+        "until": 15.75
+      }
+    ],
+    "enabled": true,
+    "step": 0.125,
+    "samples": 160
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

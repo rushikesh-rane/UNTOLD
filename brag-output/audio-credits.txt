@@ -1,0 +1,4 @@
+Music: “Happy Beats / Business Moves Vol. 12” by Sascha Ende (ende.app), licensed under CC BY 4.0.
+The track is bundled locally from the Brag skill's music assets. Credit should accompany any public sharing of the video.
+
+Sound effects: local Brag skill sound assets, used as restrained UI/reveal accents.
