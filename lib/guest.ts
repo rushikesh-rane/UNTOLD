@@ -14,7 +14,7 @@
 export const GUEST_FREE_PARTS = 1;
 
 /** How many seconds a guest spends actively using the site, in one visit, before the sign-in popup appears. */
-export const GUEST_NUDGE_AFTER_SECONDS = 1;
+export const GUEST_NUDGE_AFTER_SECONDS = 45;
 
 /** Pages anyone can open. Everything else needs an account. */
 const PUBLIC_PAGES = new Set(['/', '/login', '/auth/callback', '/demo-access', '/how-it-works', '/whats-new']);
