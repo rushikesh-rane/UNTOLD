@@ -239,6 +239,11 @@ function LoginForm() {
           </button>
         </p>
 
+        <p className="auth-guest">
+          <Link href="/">Continue as a guest</Link>
+          <span>Browse stories and read the first part. Sign in to read on, save and join in.</span>
+        </p>
+
         {process.env.NEXT_PUBLIC_ENABLE_LOCAL_DEMO === 'true' && (
           <div className="local-demo-box">
             <p className="auth-footnote">

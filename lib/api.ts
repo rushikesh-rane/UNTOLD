@@ -96,3 +96,21 @@ export function dbFailure(error: { code?: string; message?: string } | null | un
   console.error('[api] database error', code, message);
   return fail(fallback, 500);
 }
+
+
+/**
+ * True when the request comes from a signed-in person. Checks the session token locally where possible
+ * (no extra round trip to Supabase), and falls back to getUser() on older supabase-js versions.
+ */
+export async function isSignedIn(supabase: { auth: { getClaims?: () => Promise<{ data: { claims?: unknown } | null }>; getUser: () => Promise<{ data: { user: unknown } }> } }): Promise<boolean> {
+  try {
+    if (typeof supabase.auth.getClaims === 'function') {
+      const { data } = await supabase.auth.getClaims();
+      return Boolean(data?.claims);
+    }
+    const { data } = await supabase.auth.getUser();
+    return Boolean(data.user);
+  } catch {
+    return false;
+  }
+}

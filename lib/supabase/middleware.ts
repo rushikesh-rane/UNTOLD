@@ -2,11 +2,11 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { safeNextPath } from '@/lib/security';
+import { isPublicApiRead, isPublicPage } from '@/lib/guest';
 
-const isPublicPath = (pathname: string) =>
-  pathname === '/login' ||
-  pathname === '/auth/callback' ||
-  pathname === '/demo-access';
+// Guests (not signed in) may open the pages and read-only API endpoints listed in lib/guest.ts.
+// Everything else still requires an account.
+const isPublicPath = (pathname: string, method: string) => isPublicPage(pathname) || isPublicApiRead(pathname, method);
 
 type CspContext = { nonce: string; csp: string };
 
@@ -86,7 +86,11 @@ export async function updateSession(request: NextRequest, context?: CspContext) 
     localDemoEnabled &&
     request.cookies.get('untold-local-demo')?.value === 'enabled';
 
-  if (!user && !isLocalDemo && !isPublicPath(pathname)) {
+  if (!user && !isLocalDemo && !isPublicPath(pathname, request.method)) {
+    // API calls get a clear JSON answer the app can react to; pages send the visitor to sign in.
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Sign in required.' }, { status: 401, headers: { 'Cache-Control': 'no-store' } });
+    }
     const loginUrl = request.nextUrl.clone();
 
     loginUrl.pathname = '/login';

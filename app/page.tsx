@@ -41,6 +41,10 @@ type CloudStory = {
   profiles?: CloudAuthor | CloudAuthor[] | null;
   chapters?: CloudChapter[] | null;
   upcoming?: { position: number; reveal_at: string | null }[] | null;
+  /** Parts a guest cannot read yet (the server only sends them the free parts). */
+  guest_locked_parts?: number;
+  /** Length of every released part, so read times stay honest for guests. */
+  read_chars?: number;
   theories?: { count: number }[] | null;
   predictions?: { count: number }[] | null;
 };
@@ -74,6 +78,8 @@ type MediaStory = Story & {
   parts: ReaderPart[];
   /** Scheduled parts that readers cannot open yet: part number and release time only. */
   upcoming: UpcomingPart[];
+  /** Released parts hidden from guests until they sign in. Always 0 for signed-in readers. */
+  lockedParts: number;
   images: { src: string; alt: string; caption: string }[];
   theories: Theory[];
   audioLabel: string;
@@ -99,7 +105,7 @@ function mapCloudStory(item: CloudStory): MediaStory {
   const { parts, images } = buildReaderParts(item.chapters ?? []);
   const upcoming = buildUpcomingParts(item.upcoming);
   const body = parts.flatMap((part) => part.paragraphs);
-  return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: (item.genre ?? '').trim().toUpperCase() || 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), avatarUrl: author?.avatar_url || undefined, color: 'violet', readTime: `${Math.max(1, Math.ceil(body.join(' ').length / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 0, publishedAt: item.published_at || undefined, body, parts, upcoming, images, theories: [], audioLabel: 'Listen to the opening' };
+  return { id: item.id, authorId: item.author_id || undefined, coverUrl: item.cover_url || undefined, category: (item.genre ?? '').trim().toUpperCase() || 'FICTION', title: item.title, excerpt: item.synopsis || 'A new story, waiting to be discovered.', author: author?.display_name || 'UNTOLD reader', handle: author?.username ? `@${author.username}` : '@reader', initials: (author?.display_name || 'UR').slice(0, 2).toUpperCase(), avatarUrl: author?.avatar_url || undefined, color: 'violet', readTime: `${Math.max(1, Math.ceil((item.read_chars ?? body.join(' ').length) / 900))} min read`, predictions: item.predictions?.[0]?.count ?? 0, comments: item.theories?.[0]?.count ?? 0, reveal: upcoming.length ? countdownLabel(upcoming[0]).text : 'Continue reading', progress: 0, publishedAt: item.published_at || undefined, body, parts, upcoming, lockedParts: item.guest_locked_parts ?? 0, images, theories: [], audioLabel: 'Listen to the opening' };
 }
 
 // Synopses are often written as "Tag · Tag · Tag · The actual blurb". The card shows the tags and the
@@ -153,6 +159,10 @@ export default function HomePage() {
   const [followedIds, setFollowedIds] = useState<string[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [followBusy, setFollowBusy] = useState(false);
+  // Guests (not signed in) can browse and read free parts, but taking part asks them to sign in.
+  const [authChecked, setAuthChecked] = useState(false);
+  const [guestPrompt, setGuestPrompt] = useState<string | null>(null);
+  const isGuest = authChecked && !currentUserId;
   const [lightbox, setLightbox] = useState<{ src: string; alt: string; caption: string } | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [nowTick, setNowTick] = useState(() => Date.now());
@@ -166,6 +176,7 @@ export default function HomePage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
+        if (alive) setAuthChecked(true);
         if (user) {
           const { data: bookmarks } = await supabase.from('bookmarks').select('story_id').eq('user_id', user.id);
           if (alive && bookmarks) setSavedStories(bookmarks.map((item) => item.story_id));
@@ -260,7 +271,18 @@ export default function HomePage() {
     window.setTimeout(() => setNotice(''), 2600);
   }
 
+  // Shows the friendly "sign in to do this" box instead of letting a guest hit a failed request.
+  function askToSignIn(message: string) { setGuestPrompt(message); }
+
+  useEffect(() => {
+    if (!guestPrompt) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setGuestPrompt(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [guestPrompt]);
+
   async function toggleFollow(story: MediaStory) {
+    if (isGuest) { askToSignIn('Sign in to follow creators and be first to know about new parts.'); return; }
     const creatorId = story.authorId;
     if (!creatorId) { showNotice('This story has no author account to follow.'); return; }
     if (followBusy) return;
@@ -277,6 +299,7 @@ export default function HomePage() {
   }
 
   async function toggleSave(id: string) {
+    if (isGuest) { askToSignIn('Sign in to save stories to your reading list.'); return; }
     const isSaved = savedStories.includes(id);
     try {
       const response = await fetch(isSaved ? `/api/bookmarks?storyId=${encodeURIComponent(id)}` : '/api/bookmarks', isSaved ? { method: 'DELETE' } : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId: id }) });
@@ -332,7 +355,7 @@ export default function HomePage() {
   async function toggleLike(theory: Theory) {
     if (!selectedStory || likeBusy.current.has(theory.id)) return;
     const storyId = selectedStory.id;
-    if (!currentUserId) { showNotice('Sign in to like theories.'); return; }
+    if (!currentUserId) { askToSignIn('Sign in to like theories.'); return; }
     const wasLiked = Boolean(likedTheories[theory.id]);
     const apply = (liked: boolean) => {
       setLikedTheories((current) => ({ ...current, [theory.id]: liked }));
@@ -350,7 +373,7 @@ export default function HomePage() {
   // Opens the reply box directly under the theory being answered (optionally pre-mentioning a person in that thread).
   function openReply(theory: Theory, mention?: string) {
     if (replyingTo === theory.id && !mention) { setReplyingTo(null); setReplyDraft(''); return; }
-    if (!currentUserId) { showNotice('Sign in to reply.'); return; }
+    if (!currentUserId) { askToSignIn('Sign in to join the conversation.'); return; }
     setReplyingTo(theory.id);
     setReplyDraft(mention ? `@${mention} ` : '');
   }
@@ -393,6 +416,7 @@ export default function HomePage() {
   }
 
   async function submitTheory() {
+    if (isGuest) { askToSignIn('Sign in to share your theory with other readers.'); return; }
     if (!selectedStory || theoryDraft.trim().length < 8) return;
     try {
       const response = await fetch('/api/theories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId: selectedStory.id, body: theoryDraft.trim() }) });
@@ -427,7 +451,9 @@ export default function HomePage() {
           <ThemeToggle />
           <WhatsNewLink />
           <Link href="/community" className="profile-button" aria-label="Your community" title="Reading list, following, theories and predictions"><Users size={17} /><span>Community</span></Link>
-          <Link href="/account" className="profile-button" aria-label="Your profile" title="Your profile"><UserRound size={17} /><span>Profile</span></Link>
+          {isGuest
+            ? <Link href="/login?next=/" className="profile-button" aria-label="Sign in" title="Sign in or create an account"><UserRound size={17} /><span>Sign in</span></Link>
+            : <Link href="/account" className="profile-button" aria-label="Your profile" title="Your profile"><UserRound size={17} /><span>Profile</span></Link>}
           <Link href="/write" className="publish-button"><Plus size={16} /><span>Write a story</span></Link>
         </div>
       </header>
@@ -440,7 +466,7 @@ export default function HomePage() {
             <div className="sidebar-label">YOUR SPACE</div>
             <button className={`sidebar-link ${activeNav === 'Discover' ? 'sidebar-link-active' : ''}`} onClick={() => { setActiveNav('Discover'); setActiveTab('For you'); }}><Home size={17} /> <span>Discover</span></button>
             <button className={`sidebar-link ${activeNav === 'Trending' ? 'sidebar-link-active' : ''}`} onClick={() => { setActiveNav('Trending'); setActiveTab('Trending'); }}><Flame size={17} /> <span>Trending</span></button>
-            <button className={`sidebar-link ${activeNav === 'Reading list' ? 'sidebar-link-active' : ''}`} onClick={() => { setActiveNav('Reading list'); setActiveTab('For you'); }}><BookmarkCheck size={17} /> <span>Reading list</span><span className="sidebar-count">{savedStories.length}</span></button>
+            <button className={`sidebar-link ${activeNav === 'Reading list' ? 'sidebar-link-active' : ''}`} onClick={() => { if (isGuest) { askToSignIn('Sign in to keep a reading list.'); return; } setActiveNav('Reading list'); setActiveTab('For you'); }}><BookmarkCheck size={17} /> <span>Reading list</span><span className="sidebar-count">{savedStories.length}</span></button>
             <Link href="/community?tab=following" className="sidebar-link"><Users size={17} /> <span>Following creators</span></Link>
             <Link href="/community?tab=theories" className="sidebar-link"><MessageCircle size={17} /> <span>Theory Room</span></Link>
             <Link href="/community?tab=predictions" className="sidebar-link"><Sparkles size={17} /> <span>Predictions</span></Link>
@@ -458,6 +484,8 @@ export default function HomePage() {
               <p className="intro-copy">A little of the story. A thousand possible endings.<br className="desktop-break" /> Come for the mystery. Stay for the reveal.</p>
             </section>
 
+
+            {isGuest ? <aside className="guest-banner" aria-label="You are browsing as a guest"><Sparkles size={16} aria-hidden="true" /><p><strong>Browsing as a guest.</strong> Read the first part of every story. Sign in to read on, save stories, and join the theories.</p><Link href="/login?next=/" className="guest-banner-link">Sign in <ArrowRight size={14} /></Link></aside> : null}
 
             <section className="feed-section" aria-label="Discover stories">
               <div className="whats-new-chip-row"><WhatsNewLink variant="chip" /></div>
@@ -493,7 +521,7 @@ export default function HomePage() {
                 <div className="story-list">
                   {filteredStories.map((story, index) => {
                     const { tags, blurb } = splitSynopsis(story.excerpt);
-                    const chapterCount = story.parts.length + story.upcoming.length;
+                    const chapterCount = story.parts.length + story.lockedParts + story.upcoming.length;
                     const previewOpen = previewOpenId === story.id;
                     const saved = savedStories.includes(story.id);
                     return (
@@ -596,6 +624,16 @@ export default function HomePage() {
                                     <button type="button" className="chapter-action" onClick={() => openStory(story)}>Read</button>
                                   </li>
                                 ))}
+                                {Array.from({ length: story.lockedParts }, (_, index) => story.parts.length + index + 1).map((position) => (
+                                  <li key={`locked-${position}`} className="is-locked">
+                                    <span className="chapter-mark"><Lock size={12} /></span>
+                                    <span className="chapter-name">
+                                      <strong>Part {position}</strong>
+                                      <em>Free with an account</em>
+                                    </span>
+                                    <button type="button" className="chapter-action" onClick={() => openStory(story)}>Sign in</button>
+                                  </li>
+                                ))}
                                 {story.upcoming.map((part) => (
                                   <li key={`upcoming-${part.position}`} className="is-locked">
                                     <span className="chapter-mark"><Lock size={12} /></span>
@@ -680,12 +718,13 @@ export default function HomePage() {
         <div className="reader-page">
           <button className="back-button" onClick={() => { if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel(); setIsSpeaking(false); setSelectedStory(null); }}><ArrowLeft size={16} /> Back to stories</button>
           <article className="reader-article">
-            <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'REAL LIFE' ? '' : 'pill-fiction'}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>{selectedStory.parts.length > 1 ? `${selectedStory.parts.length} PARTS` : 'ONE PART'}</span></div>
+            <div className="reader-meta"><span className={`category-pill ${selectedStory.category === 'REAL LIFE' ? '' : 'pill-fiction'}`}>{selectedStory.category}</span><span><Clock3 size={13} /> {selectedStory.readTime}</span><span>{selectedStory.parts.length + selectedStory.lockedParts > 1 ? `${selectedStory.parts.length + selectedStory.lockedParts} PARTS` : 'ONE PART'}</span></div>
             <h1 className="reader-title">{selectedStory.title}</h1>
             <p className="reader-deck">{selectedStory.excerpt}</p>
             <div className="reader-byline"><Avatar initials={selectedStory.initials} color={selectedStory.color} src={selectedStory.avatarUrl} /><div><strong>{selectedStory.author}</strong><span>{selectedStory.handle} · Storyteller</span></div>{!(currentUserId && selectedStory.authorId === currentUserId) && <button className={`follow-button${selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? ' is-following' : ''}`} aria-pressed={Boolean(selectedStory.authorId && followedIds.includes(selectedStory.authorId))} onClick={() => void toggleFollow(selectedStory)}>{selectedStory.authorId && followedIds.includes(selectedStory.authorId) ? <>Following <Check size={13} /></> : <>Follow <Plus size={13} /></>}</button>}</div>
             <div className="reader-tools"><button className={`listen-button ${isSpeaking ? 'listening' : ''}`} onClick={toggleNarration}>{isSpeaking ? <Pause size={16} /> : <Headphones size={16} />}{isSpeaking ? 'Pause narration' : 'Listen to story'}<span><Volume2 size={13} /> browser audio</span></button><button className={`reader-save ${savedStories.includes(selectedStory.id) ? 'is-saved' : ''}`} onClick={() => toggleSave(selectedStory.id)}>{savedStories.includes(selectedStory.id) ? <Check size={16} /> : <Bookmark size={16} />}{savedStories.includes(selectedStory.id) ? 'Saved' : 'Save story'}</button></div>
-            <div className="reader-body">{selectedStory.parts.map((part) => <section className="reader-part" key={part.position} aria-label={`Part ${part.position}`}>{selectedStory.parts.length > 1 ? <p className="eyebrow muted-eyebrow reader-part-label">PART {String(part.position).padStart(2, '0')}</p> : null}{part.heading ? <h2 className="reader-part-title">{part.heading}</h2> : null}{part.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</section>)}</div>
+            <div className="reader-body">{selectedStory.parts.map((part) => <section className="reader-part" key={part.position} aria-label={`Part ${part.position}`}>{selectedStory.parts.length + selectedStory.lockedParts > 1 ? <p className="eyebrow muted-eyebrow reader-part-label">PART {String(part.position).padStart(2, '0')}</p> : null}{part.heading ? <h2 className="reader-part-title">{part.heading}</h2> : null}{part.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</section>)}</div>
+            {selectedStory.lockedParts > 0 ? <section className="guest-gate" aria-label="Sign in to keep reading"><div className="guest-gate-icon"><Lock size={18} /></div><div><span className="eyebrow muted-eyebrow">KEEP READING</span><h3>{selectedStory.lockedParts === 1 ? 'There is 1 more part.' : `There are ${selectedStory.lockedParts} more parts.`}</h3><p>Create a free account to read the rest, save this story, and share your theories.</p><div className="guest-gate-actions"><Link href={`/login?next=${encodeURIComponent(`/?story=${selectedStory.id}`)}`} className="guest-primary">Sign in to continue <ArrowRight size={15} /></Link></div></div></section> : null}
             {selectedStory.upcoming.length ? <section className="reveal-countdown-list" aria-label="Parts that unlock later">{selectedStory.upcoming.map((part, index) => {
               const countdown = countdownLabel(part, new Date(nowTick));
               return <div className={`reveal-card reveal-countdown${index === 0 ? ' is-next' : ''}${countdown.ready ? ' is-ready' : ''}`} key={part.position}>
@@ -702,11 +741,11 @@ export default function HomePage() {
             {selectedStory.images.length ? <section className="media-section"><div className="media-heading"><div><p className="eyebrow muted-eyebrow"><ImageIcon size={13} /> EVIDENCE & MOMENTS</p><h2>Look a little <em>closer.</em></h2></div><span>01 — {String(selectedStory.images.length).padStart(2, '0')}</span></div><div className="image-gallery">{selectedStory.images.map((image, index) => <button className={`gallery-image gallery-image-${index + 1}`} key={image.src} onClick={() => setLightbox(image)}><img src={image.src} alt={image.alt} loading="lazy" decoding="async" /><span className="gallery-caption">{image.caption}</span></button>)}</div><p className="gallery-hint">A few details may matter more than they seem. Tap an image to look closer.</p></section> : null}
             <section className="engage-block engage-predictions" aria-labelledby="engage-predictions-title">
               <div className="engage-head"><span className="engage-step" aria-hidden="true">01</span><div><p className="eyebrow muted-eyebrow">PREDICTIONS</p><h2 id="engage-predictions-title">Pick what happens <em>next.</em></h2><p className="engage-sub">The author sets the question and the options. Choose one, then see how everyone else called it.</p></div></div>
-              <PredictionCard storyId={selectedStory.id} signedIn={Boolean(currentUserId)} onNotice={showNotice} />
+              <PredictionCard storyId={selectedStory.id} signedIn={Boolean(currentUserId)} onNotice={(message) => (message.startsWith('Sign in') ? askToSignIn('Sign in to lock in your prediction and see how everyone else called it.') : showNotice(message))} />
             </section>
             <div className="engage-divider" role="separator"><span>Predictions are picks. Theories are your own ideas.</span></div>
 
-            <section className="theory-section engage-block"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow"><span className="engage-step engage-step-inline" aria-hidden="true">02</span>THE THEORY ROOM</p><h2>What do you <em>think?</em></h2><p className="theory-intro">Share your own idea about what is really going on, based on what you have read so far.</p></div><span>{selectedStory.theories.length} THEORIES</span></div><form className="theory-form" onSubmit={(event) => { event.preventDefault(); void submitTheory(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={theoryDraft} onChange={(event) => setTheoryDraft(event.target.value)} placeholder="Based on what I've read, I think…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{theoryDraft.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={theoryDraft.trim().length < 8}>Submit theory <Send size={14} /></button></div></form><div className="theory-list">{discussionLoading && !selectedStory.theories.length ? <TheorySkeleton /> : null}{selectedStory.theories.map((theory) => {
+            <section className="theory-section engage-block"><div className="theory-heading"><div><p className="eyebrow muted-eyebrow"><span className="engage-step engage-step-inline" aria-hidden="true">02</span>THE THEORY ROOM</p><h2>What do you <em>think?</em></h2><p className="theory-intro">Share your own idea about what is really going on, based on what you have read so far.</p></div><span>{selectedStory.theories.length} THEORIES</span></div>{isGuest ? <div className="guest-inline-cta"><Lock size={16} aria-hidden="true" /><p>Sign in to put your own theory on the table and reply to other readers.</p><button type="button" onClick={() => askToSignIn('Sign in to share your theory with other readers.')}>Sign in</button></div> : <form className="theory-form" onSubmit={(event) => { event.preventDefault(); void submitTheory(); }}><label htmlFor="theory-input">PUT YOUR THEORY ON THE TABLE</label><textarea id="theory-input" value={theoryDraft} onChange={(event) => setTheoryDraft(event.target.value)} placeholder="Based on what I've read, I think…" maxLength={500} rows={3} /><div className="theory-form-bottom"><span>{theoryDraft.length}/500 · Be curious, not cruel.</span><button type="submit" disabled={theoryDraft.trim().length < 8}>Submit theory <Send size={14} /></button></div></form>}<div className="theory-list">{discussionLoading && !selectedStory.theories.length ? <TheorySkeleton /> : null}{selectedStory.theories.map((theory) => {
               const liked = Boolean(likedTheories[theory.id]);
               const isReplying = replyingTo === theory.id;
               return <article className="theory-card" key={theory.id}>
@@ -733,6 +772,17 @@ export default function HomePage() {
           </article>
         </div>
       )}
+
+      {guestPrompt ? <div className="guest-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setGuestPrompt(null); }}>
+        <div className="guest-modal" role="dialog" aria-modal="true" aria-labelledby="guest-modal-title">
+          <button type="button" className="guest-modal-close" onClick={() => setGuestPrompt(null)} aria-label="Close"><X size={18} /></button>
+          <span className="guest-modal-icon"><Lock size={18} /></span>
+          <h2 id="guest-modal-title">Join <em>UNTOLD</em> to do that</h2>
+          <p>{guestPrompt}</p>
+          <Link href={`/login?next=${encodeURIComponent(selectedStory ? `/?story=${selectedStory.id}` : '/')}`} className="guest-primary">Sign in or create an account <ArrowRight size={15} /></Link>
+          <button type="button" className="guest-modal-secondary" onClick={() => setGuestPrompt(null)}>Keep browsing</button>
+        </div>
+      </div> : null}
 
       {notice && <div className="toast" role="status"><Check size={16} />{notice}<button onClick={() => setNotice('')} aria-label="Dismiss notification"><X size={15} /></button></div>}
 

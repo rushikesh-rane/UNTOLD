@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { guard } from '@/lib/api';
+import { guard, isSignedIn } from '@/lib/api';
+import { GUEST_FREE_PARTS } from '@/lib/guest';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,12 +22,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Could not load published stories.', stories: [] }, { status: 500 });
     }
 
-    const visibleStories = (stories ?? []).map((story) => ({
-      ...story,
-      chapters: (story.chapters ?? [])
+    // Guests (not signed in) only get the first free part(s) of each story. The rest is cut here on the server,
+    // so it never reaches their browser. The total length is still reported so read times stay honest.
+    const guest = !(await isSignedIn(supabase));
+    const visibleStories = (stories ?? []).map((story) => {
+      const released = (story.chapters ?? [])
         .filter((chapter) => chapter.is_revealed === true && (!chapter.reveal_at || new Date(chapter.reveal_at) <= new Date()))
-        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
-    }));
+        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      const shown = guest ? released.slice(0, GUEST_FREE_PARTS) : released;
+      return {
+        ...story,
+        chapters: shown,
+        guest_locked_parts: released.length - shown.length,
+        read_chars: released.reduce((total, chapter) => total + (chapter.body?.length ?? 0), 0),
+      };
+    });
 
     // Discussion counts are a nice-to-have: fetch them separately so a failure here can never hide stories.
     const theoryCounts: Record<string, number> = {};
